@@ -1,16 +1,15 @@
-﻿class Round
+﻿using GameCorpLib;
+using GameCorpLib.State;
+using System.Data;
+using System.Security.Cryptography.X509Certificates;
+
+public class Program
 {
-    readonly int RoundNumber;
-    public Round(int roundNumber)
+    public static void Main(string[] args)
     {
-        this.RoundNumber = roundNumber;
-    }
-    Round Next(Round currentRound)
-    {
-        Round newRound = new Round(currentRound.RoundNumber + 1);
-        return newRound;
-    }
+	}
 }
+
 
 
 
@@ -33,13 +32,22 @@ class Economy
     double BaseOilDemand;
     void Update()
     {
-        
+
     }
+}
+
+static class MarketWrapper
+{
+    public static Market market = new Market();
 }
 
 class MarketInResource
 {
-
+    Market market;
+    void Test()
+    {
+       
+    }
 }
 class Market : Trader
 {
@@ -104,24 +112,23 @@ class Market : Trader
         double fulfilmentOfStock = GetFulfilmentOfStockAfterChange(new Resource(resourceType, 0));
         return BaseOilPrice * (1 / Math.Pow(fulfilmentOfStock, 2));
     }
-    /// <summary>
-    ///  Is used by market to determine the price of a resource, a ratio of stock to economy is used to determine the price
-    ///  It is integral of the price function
-    /// </summary>
-    /// <param name="resourceToBeBought"></param>
-    /// What resource at what quantity is going to be bought
-    /// <returns></returns>
-    double DeterminePriceForTrade(Resource resourceToBeBought)
+	/// <summary>
+	///  Is used by market to determine the price of a resource, a ratio of stock to economy is used to determine the price
+	///  It is integral of the price function
+	/// </summary>
+	/// What resource at what quantity is going to be bought
+	/// <param name="resourceToBeBought"></param>
+	/// <returns></returns>
+	public double DeterminePriceForTrade(Resource resourceToBeBought)
     {
         //Integral of the price 
         double fulfilmentOfStock = GetRatioOfStockToEconomy(resourceToBeBought.Type);
         double newFulfilmentOfStock = GetFulfilmentOfStockAfterChange(resourceToBeBought);
-        
         double Integral(double fulfilmentOfStock)
         {
             return -BaseOilPrice * (1 / fulfilmentOfStock);
         }
-        double price =  (Integral(newFulfilmentOfStock) - Integral(fulfilmentOfStock)) / ExpectedSizeOfStockAcordingToEconomy();
+        double price = (Integral(newFulfilmentOfStock) - Integral(fulfilmentOfStock)) / ExpectedSizeOfStockAcordingToEconomy();
         return price;
     }
     bool TryTrade(Trader counterparty, Resource resource)
@@ -131,78 +138,15 @@ class Market : Trader
         return TryDoTrade(new Resource(ResourceType.Money, price), resource, this, counterparty);
     }
 }
-record struct Resource(ResourceType Type, double Amount);
-class Trader
-{
-    public Stock Stock = new Stock();
-    public double Money { get => Stock.resources[ResourceType.Money]; set => Stock.resources[ResourceType.Money] = value; }
-
-    public IDictionary<int, Property> Properties = new Dictionary<int, Property>();
-    public void ExchangeResource(Resource resource, Trader from, Trader to)
-    {
-        from.Stock.resources[resource.Type] -= resource.Amount;
-        to.Stock.resources[resource.Type] += resource.Amount;
-    }
-    public bool TryDoTrade(Resource toBeSold, Resource toBeBought, Trader buyer, Trader seller)
-    {
-        //Negative values of resources are not allowed
-       if(toBeSold.Amount < 0 || toBeBought.Amount < 0)
-        {
-                return false;
-            }
-       if(buyer.HasEnough(toBeSold.Type, toBeSold.Amount) && seller.HasEnough(toBeBought.Type, toBeBought.Amount))
-       {
-              ExchangeResource(toBeSold, seller, buyer);
-              ExchangeResource(toBeBought, buyer, seller);
-              return true;     
-       }
-        return false;
-    }
-    public bool HasEnough(ResourceType resource, double amnount)
-    {
-        return Stock.resources[resource] >= amnount;
-    }
-
-    public bool TryChangePropertyOwner(Property property, Trader oldOwner, Trader newOwner)
-    {
-        if(property.owner != oldOwner)
-        {
-            return false;
-        }
-        property.owner = newOwner;
-        oldOwner.Properties.Remove(property.id);
-        newOwner.Properties.Add(property.id, property);
-        return true;
-    }
-
-
-}
-
-class Company : Trader
-{
-    IDictionary<int, OilMine> OilMines = new Dictionary<int, OilMine>();
-    Market market;
-
-    public void TradeWithMarket(Resource resource)
-    {
-        
-    }
-    public bool TryProspectNewMine()
-    {
-        OilMine? mine = OilMineFactory.TryProspect(this);
-        if(mine != null)
-        {
-            OilMines.Add(mine.Id, mine);
-            return true;
-        }
-        return false;
-    }     
-}
+public record struct Resource(ResourceType Type, double Amount);
 
 
 
-enum ResourceType { Oil, Money }  
-class Stock
+
+
+
+public enum ResourceType { Oil, Money }
+public class Stock
 {
     public IDictionary<ResourceType, double> resources = new Dictionary<ResourceType, double>();
     public Stock()
@@ -211,105 +155,75 @@ class Stock
     }
 }
 
-static class PropertyFactory
+
+
+class OilField : Property
 {
-    static int id = 0;
-    static IList<Property> Properties = new List<Property>();
-    public static Property CreateProperty()
+    public OilField(Trader owner, PropertyRegister propertyRegister) : base(owner, propertyRegister)
     {
-        Property newProperty = new Property(id, null);
-        id++;
-        Properties.Add(newProperty);
-        return newProperty;
+
     }
-    public enum TradePropertyState
+    double PricePerUnitMined;
+
+    public override void Update()
     {
-        Success,
-        PropertyNotOwned,
-        NotEnoughMoney
+        //Mine
+
     }
-    static public TradePropertyState TryTradeProperty(Trader seller, Trader buyer, Property property, double price)
+}
+
+static class Prospectors
+{
+    public static OilMineProspector OilMineProspector = new OilMineProspector();
+}
+class OilMineProspector : Trader
+{
+    double MinePrice = 1000;
+    IList<OilMine> oilMines = new List<OilMine>();
+    public bool TryBuyNewMine(Trader buyer, PropertyRegister propertyRegister)
     {
-        if(seller != property.owner)
+        if (oilMines.Count == 0)
         {
-            return TradePropertyState.PropertyNotOwned;
+            oilMines.Add(new OilMine(this, propertyRegister));
         }
-        if((price > 0 && buyer.Money - price < 0) || price < 0 && (seller.Money + price) < 0)
+        if (propertyRegister.TryTradeProperty(this, buyer, oilMines.Last(), MinePrice) == PropertyRegister.TradePropertyState.Success)
         {
-            return TradePropertyState.NotEnoughMoney;
-        }
-        
-        
-        //Do trade
-        if(buyer.TryChangePropertyOwner(property, seller, buyer))
-        {
-            return TradePropertyState.Success;
+            oilMines.RemoveAt(oilMines.Count - 1);
+            return true;
         };
-        return TradePropertyState.PropertyNotOwned;
-
+        return false;
 
 
     }
+
 }
 
-class Property
+class OilMine : Property
 {
-    public readonly int id;
-    public Trader owner;
-    public Property(int id, Trader owner)
-    {
-        this.id = id;
-        this.owner = owner;
-    }
-}
-
-static class OilMineFactory
-{
-    static int id = 0;
-    static IList<OilMine> OilMines = new List<OilMine>();
-    static readonly public double OilMinePrice = 1000;
-    public static OilMine? TryProspect(Company owner)
-    {  
-        if(owner.TryPay(OilMinePrice))
-        {
-            return Prospect(owner);
-        }
-        return null;
-    }
-    public static OilMine Prospect (Company owner)
-    {
-        OilMine newMine = new OilMine(id, owner);
-        id++;
-        OilMines.Add(newMine);
-        return newMine;
-    }
-}
-
-class OilMine
-{
-    public readonly int Id;
     double allResources = 10000;
     double minedResources = 0;
     double miningRate = 0.01;
-    Company owner;
-    public OilMine(int id, Company owner)
+    bool Active = false;
+    public OilMine(Trader owner, PropertyRegister propertyRegister) : base(owner, propertyRegister)
     {
-        this.Id = id;
-        this.owner = owner;
     }
-    void Mine() { 
+    public override void Update()
+    {
+        if (Active)
+        {
+            Mine();
+        }
+    }
+    void Mine()
+    {
         double newlyMinedResources = miningRate * allResources;
         minedResources += newlyMinedResources;
         owner.Stock.resources[ResourceType.Oil] += newlyMinedResources;
-    }  
+    }
 }
-
-
 
 class Resource<Type>
 {
-    
+
 }
-
-
 

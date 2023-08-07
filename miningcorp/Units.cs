@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace miningcorp
+namespace GameCorpLib
 {
     //This code was GENERATED!!! Please make changes  at DoubleClassGenerator project in DoubleClassGenerator.cs
  
