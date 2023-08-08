@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace GameCorpLib.State
 {
 	public class PropertyRegister : Register<Property>
-	{ 
+	{
 		public enum TradePropertyState
 		{
 			Success,

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace GameCorpLib
 {
 	internal class Game
-	{ 
+	{
 		public int Round = 0;
 		public Registers Registers = new Registers();
 

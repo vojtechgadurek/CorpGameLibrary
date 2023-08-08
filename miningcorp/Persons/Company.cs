@@ -1,9 +1,4 @@
 ﻿using GameCorpLib.State;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameCorpLib
 {
@@ -12,7 +7,8 @@ namespace GameCorpLib
 		public string Name;
 		readonly int Id;
 		Player Controler;
-		public Company(string name, Player controler, CompanyRegister companyRegister) {
+		public Company(string name, Player controler, CompanyRegister companyRegister)
+		{
 			Name = name;
 			Controler = controler;
 			companyRegister.RegisterItem(this, out Id);

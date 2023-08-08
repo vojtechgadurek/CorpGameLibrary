@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.State
 {
-	public class CompanyRegister: Register<Company>
+	public class CompanyRegister : Register<Company>
 	{
-		
+
 	}
 }

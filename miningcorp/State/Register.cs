@@ -20,7 +20,7 @@ namespace GameCorpLib.State
 		/// <param name="item"></param>
 		/// <param name="id"></param>
 		void BasicRegister(TItem item, out int id)
-		{	
+		{
 			items.Add(item);
 			id = IssueId();
 		}
@@ -37,7 +37,7 @@ namespace GameCorpLib.State
 		/// </summary>
 		/// <param name="item"></param>
 		/// <param name="Id"></param>
-		public void RegisterItem(TItem item, out int  Id)
+		public void RegisterItem(TItem item, out int Id)
 		{
 			lock (this)
 			{
