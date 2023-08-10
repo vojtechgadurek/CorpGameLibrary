@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Tradables
 {
-	class OilField : Property
+	public class OilField : Property
 	{
 		public OilField(Trader owner, PropertyRegister propertyRegister) : base(owner, propertyRegister)
 		{
@@ -16,11 +16,11 @@ namespace GameCorpLib.Tradables
 			AllOil = 1000 * Random.Shared.NextDouble();
 			AmountLeft = AllOil;
 		}
-		double PricePerUnitMined;
+		public double PricePerUnitMined;
 		double AllOil;
 		double AmountLeft;
-		int NumberOfMiningRings = 0;
-		double BasePricePerRigBought = 100;
+		public int NumberOfMiningRings = 0;
+		public double BasePricePerRigBought = 100;
 		double HalfMiningTime = 100;
 		public bool TryBuyMiningRing()
 		{

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GameCorpLib.Tradables;
+using GameCorpLib.Persons;
 
 namespace GameCorpLib
 {
@@ -52,6 +54,11 @@ namespace GameCorpLib
             {
                 Game.NewRound();
             }
+        }
+
+        public bool TryProspectNewOilField(Player player)
+        {
+            return Game.OilMineProspector.TryBuyNewMine(player);
         }
 
         public IDictionary<string, Player> GetPlayers()

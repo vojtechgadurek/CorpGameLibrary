@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GameCorpLib.Tradables;
+using GameCorpLib.Persons;
 
 namespace GameCorpLib
 {
@@ -11,14 +13,16 @@ namespace GameCorpLib
 	{
 		public int Round = 0;
 		public Registers Registers = new Registers();
+		public OilFieldProspector OilMineProspector;
 
 		public Game()
 		{
+			OilMineProspector = new OilFieldProspector(Registers.PropertyRegister);
 			CreateAdminAccount();
 		}
 		void CreateAdminAccount()
 		{
-			new Player("admin", "admin", Registers.PlayersRegister);
+			new Player("admin", "admin", Registers.PlayersRegister).Money = 10000000;
 		}
 		public void NewRound()
 		{

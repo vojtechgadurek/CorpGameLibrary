@@ -20,6 +20,8 @@ namespace GameCorpLib.State
 			{
 				return TradePropertyState.PropertyNotOwned;
 			}
+
+
 			if ((price > 0 && buyer.Money - price < 0) || price < 0 && (seller.Money + price) < 0)
 			{
 				return TradePropertyState.NotEnoughMoney;

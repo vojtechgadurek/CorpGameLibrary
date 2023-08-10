@@ -1,8 +1,9 @@
 ﻿using GameCorpLib.State;
+using GameCorpLib.Tradables;
 
 namespace GameCorpLib
 {
-	public abstract class Property
+	public abstract class Property : ITradable
 	{
 		public readonly int Id;
 		public Trader owner;
@@ -12,6 +13,22 @@ namespace GameCorpLib
 			propertyRegister.RegisterItem(this, out int Id);
 			this.owner = owner;
 		}
+
+		public void ChangeOwner(Trader newOwner)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool TryLockForTrade()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void UnlockFromTrade()
+		{
+			throw new NotImplementedException();
+		}
+
 		abstract public void Update();
 	}
 }

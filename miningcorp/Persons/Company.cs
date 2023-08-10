@@ -13,9 +13,5 @@ namespace GameCorpLib
 			Controler = controler;
 			companyRegister.RegisterItem(this, out Id);
 		}
-		public bool TryProspectNewMine(PropertyRegister propertyRegister)
-		{
-			return Prospectors.OilMineProspector.TryBuyNewMine(this, propertyRegister);
-		}
 	}
 }

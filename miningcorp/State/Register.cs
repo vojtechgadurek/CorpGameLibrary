@@ -54,7 +54,9 @@ namespace GameCorpLib.State
 		/// <returns></returns>
 		int IssueId()
 		{
-			return _id++;
+			int oldid = _id;
+			_id++;
+			return oldid;
 		}
 
 	}
