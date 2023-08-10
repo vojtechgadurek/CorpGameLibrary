@@ -7,6 +7,7 @@ namespace GameCorpLib
 	{
 		public readonly int Id;
 		public Trader owner;
+		private bool _lockedForTrade = false;
 		public Property(Trader owner, PropertyRegister propertyRegister)
 		{
 			//Adds id
@@ -21,12 +22,20 @@ namespace GameCorpLib
 
 		public bool TryLockForTrade()
 		{
-			throw new NotImplementedException();
+			lock (this)
+			{
+				if (_lockedForTrade)
+				{
+					return false;
+				}
+				_lockedForTrade = true;
+				return true;
+			}
 		}
 
 		public void UnlockFromTrade()
 		{
-			throw new NotImplementedException();
+			_lockedForTrade = false;
 		}
 
 		abstract public void Update();

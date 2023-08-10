@@ -12,15 +12,44 @@ namespace GameCorpLib.Persons
 	public class Stock
 	{
 		public IDictionary<ResourceType, Silo> resources = new Dictionary<ResourceType, Silo>();
+		public Resource GetResource(ResourceType resourceType)
+		{
+			return new Resource(resourceType, resources[resourceType].Amount));
+		}
 		public Stock()
 		{
-			foreach (var resource in Enum.GetValues<ResourceType>()) { resources.Add(resource, new Silo()); };
+			foreach (var resource in Enum.GetValues<ResourceType>()) { resources.Add(resource, new Silo(10000)); };
 		}
 
-		public bool TryChangeResources(Resource resource)
+		public bool TryChangeResource(Resource resource)
 		{
 			return resources[resource.Type].TryChangeAmount(resource);
 		}
+		public bool TryLockResource(Resource resource)
+		{
+			return resources[resource.Type].TryLockResource(resource);
+		}
+		public bool UnlockResource(Resource resource)
+		{
+			return resources[resource.Type].TryUnlockResource(resource);
+		}
+		public bool TryBlockResourceCapacity(Resource resource)
+		{
+			return resources[resource.Type].TryBlockCapacity(resource);
+		}
+		public void UnblockResourceCapacity(Resource resource)
+		{
+			resources[resource.Type].UnblockCapacity(resource);
+		}
+		public void FillBlockedResourceCapacity(Resource resource)
+		{
+			resources[resource.Type].UseBlockedResourceCapacity(resource);
+		}
+		public void RemoveLockedResource(Resource resource)
+		{
+			resources[resource.Type].UseLockedResource(resource);
+		}
+
 	}
 
 
@@ -104,6 +133,10 @@ namespace GameCorpLib.Persons
 		private LimitedDouble container;
 
 		double _capacity;
+		public double Amount
+		{
+			get => container.Value;
+		}
 
 		public Silo(double capacity)
 		{
@@ -114,13 +147,14 @@ namespace GameCorpLib.Persons
 		{
 			return container.TryIncreaseValue(resource.Amount);
 		}
-		public bool TryBlockCapacity(double amount)
+		public bool TryBlockCapacity(Resource resource)
 		{
-			return container.TryIncreaseUpperLimit(-amount);
+			return container.TryIncreaseUpperLimit(-resource.Amount);
 		}
-		public bool TryUnblockCapacity(double amount)
+		public void UnblockCapacity(Resource resource)
 		{
-			return container.TryIncreaseUpperLimit(amount);
+			//Should never fail
+			container.TryIncreaseUpperLimit(resource.Amount);
 		}
 		public bool TryLockResource(Resource resource)
 		{
@@ -135,6 +169,33 @@ namespace GameCorpLib.Persons
 			return ansver;
 		}
 
+		/// <summary>
+		/// Used previously blocked capacity, should be used only when capacity was blocked before
+		/// </summary>
+		/// <param name="resource"></param>
+		/// <exception cref="InvalidOperationException"></exception>
+		public void UseBlockedResourceCapacity(Resource resource)
+		{
+			lock (this)
+			{
+				if (resource.Amount < 0) throw new InvalidOperationException("Amount of resource to use blocked capacity should be positive");
+				bool ok = false;
+				ok |= container.TryIncreaseUpperLimit(resource.Amount);
+				ok |= container.TryIncreaseValue(_capacity);
+				if (!ok) throw new InvalidOperationException("Could not use blocked capacity");
+			}
+		}
 
+		public void UseLockedResource(Resource resource)
+		{
+			lock (this)
+			{
+				if (resource.Amount < 0) throw new InvalidOperationException("Amount of resource to use locked resources should be positive");
+				bool ok = false;
+				ok |= container.TryIncreaseLowerLimit(-resource.Amount);
+				ok |= container.TryIncreaseValue(-resource.Amount);
+				if (!ok) throw new InvalidOperationException("Could not use locked resources");
+			}
+		}
 	}
 }
