@@ -14,16 +14,19 @@ namespace GameCorpLib.Persons
 		public IDictionary<ResourceType, Silo> resources = new Dictionary<ResourceType, Silo>();
 		public Resource GetResource(ResourceType resourceType)
 		{
-			return new Resource(resourceType, resources[resourceType].Amount));
+			return new Resource(resourceType, resources[resourceType].Amount);
 		}
 		public Stock()
 		{
 			foreach (var resource in Enum.GetValues<ResourceType>()) { resources.Add(resource, new Silo(10000)); };
 		}
-
-		public bool TryChangeResource(Resource resource)
+		public bool TrySetAmount(Resource resource)
 		{
-			return resources[resource.Type].TryChangeAmount(resource);
+			return resources[resource.Type].TrySetAmount(resource);
+		}
+		public bool TryAddResource(Resource resource)
+		{
+			return resources[resource.Type].TryAddAmount(resource);
 		}
 		public bool TryLockResource(Resource resource)
 		{
@@ -143,7 +146,11 @@ namespace GameCorpLib.Persons
 			_capacity = capacity;
 			container = new LimitedDouble(0, capacity, 0);
 		}
-		public bool TryChangeAmount(Resource resource)
+		public bool TrySetAmount(Resource amount)
+		{
+			return container.TrySetNewValue(amount.Amount);
+		}
+		public bool TryAddAmount(Resource resource)
 		{
 			return container.TryIncreaseValue(resource.Amount);
 		}

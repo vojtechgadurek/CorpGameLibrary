@@ -18,7 +18,7 @@ namespace GameCorpLib
 		public Player(string name, string password, PlayersRegister playersRegister)
 		{
 			Name = name;
-			Money = 1000;
+			Stock.TrySetAmount(new Resource(ResourceType.Money, 1000));
 			Admin = false;
 			playersRegister.RegisterItem(this, out int id);
 			Password = password;

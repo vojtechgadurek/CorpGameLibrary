@@ -22,7 +22,7 @@ namespace GameCorpLib
 		}
 		void CreateAdminAccount()
 		{
-			new Player("admin", "admin", Registers.PlayersRegister).Money = 10000000;
+			new Player("admin", "admin", Registers.PlayersRegister).Stock.TryAddResource(new Resource(ResourceType.Money, 1000000));
 		}
 		public void NewRound()
 		{

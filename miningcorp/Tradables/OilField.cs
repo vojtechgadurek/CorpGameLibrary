@@ -24,16 +24,11 @@ namespace GameCorpLib.Tradables
 		double HalfMiningTime = 100;
 		public bool TryBuyMiningRing()
 		{
-			lock (owner.Stock.resources)
+			lock (this)
 			{
-				lock (this)
-				{
-					if (owner.Money < BasePricePerRigBought) return false;
-					owner.Money -= BasePricePerRigBought;
-					NumberOfMiningRings++;
-					return true;
-				}
-
+				if (!owner.Stock.TryAddResource(new Resource(ResourceType.Money, BasePricePerRigBought))) return false;
+				NumberOfMiningRings++;
+				return true;
 			}
 		}
 		public override void Update()
