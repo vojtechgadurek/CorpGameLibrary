@@ -10,24 +10,33 @@ namespace GameCorpLib.Persons
 {
 	class OilFieldProspector : Trader
 	{
-		double MinePrice = 1000;
+		Resource _minePrice;
 		IList<OilField> oilMines = new List<OilField>();
 		int oilMinesSold;
 		PropertyRegister _propertyRegister;
 
-		public OilFieldProspector(PropertyRegister propertyRegister)
+		public OilFieldProspector(PropertyRegister propertyRegister, Resource minePrice)
 		{
 			_propertyRegister = propertyRegister;
+			Stock.TrySetResourceCapacity(Resource.CreateOil(double.PositiveInfinity));
+			_minePrice = minePrice;
 		}
 		public bool TryProspectNewMine(Trader buyer)
 		{
-			if (oilMinesSold.Count =<)
+			if (oilMines.Count <= oilMinesSold)
 			{
-				oilMinesSold.Add(new OilField(this, _propertyRegister));
+				oilMines.Add(new OilField(this, _propertyRegister));
 			}
-			var mineForS
-			new TwoPartyTransaction
-			return false;
+			var mineForSale = oilMines[oilMinesSold];
+			TwoPartyTransaction buyingMineTransaction = new TwoPartyTransaction(buyer, this)
+				.AddTransactionItem(mineForSale, TransactionDirection.FromSellerToBuyer)
+				.AddTransactionItem(_minePrice, TransactionDirection.FromBuyerToSeller);
+			bool success = buyingMineTransaction.TryExecute();
+			if (success)
+			{
+				oilMinesSold++;
+			}
+			return success;
 		}
 	}
 }

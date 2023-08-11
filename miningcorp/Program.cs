@@ -2,6 +2,9 @@
 using GameCorpLib.State;
 using GameCorpLib.Tradables;
 using System.Data;
+using System.Data.SqlTypes;
+using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Security.Cryptography.X509Certificates;
 
 public class Program
@@ -22,8 +25,8 @@ class Contract
 	int endRound;
 	double price;
 	double amountOfOil;
-	Company writer;
-	Company holder;
+	Company? writer;
+	Company? holder;
 }
 
 class Economy
@@ -41,15 +44,6 @@ static class MarketWrapper
 {
 	public static Market market = new Market();
 }
-
-class MarketInResource
-{
-	Market market;
-	void Test()
-	{
-
-	}
-}
 class Market : Trader
 {
 	double BaseStockToEconomyMultiplicator = 10;
@@ -59,8 +53,8 @@ class Market : Trader
 	public Market()
 	{
 		//Money is infinite
-		Stock.TrySetAmount(new Resource(ResourceType.Money, Double.PositiveInfinity));
-		Stock.TrySetAmount(new Resource(ResourceType.Oil, 1000));
+		Stock.TrySetResource(new Resource(ResourceType.Money, Double.PositiveInfinity));
+		Stock.TrySetResource(new Resource(ResourceType.Oil, 1000));
 	}
 	/// <summary>
 	/// Calculates how large the stock should be according to the economy
@@ -139,7 +133,18 @@ class Market : Trader
 		return TryDoTrade(new Resource(ResourceType.Money, price), resource, this, counterparty);
 	}
 }
-public record struct Resource(ResourceType Type, double Amount);
+public record struct Resource(ResourceType Type, double Amount)
+{
+	static public Resource CreateMoney(double amount)
+	{
+		return new Resource(ResourceType.Money, amount);
+	}
+	static public Resource CreateOil(double amount)
+	{
+		return new Resource(ResourceType.Oil, amount);
+	}
+};
+
 
 
 
@@ -148,11 +153,4 @@ public record struct Resource(ResourceType Type, double Amount);
 
 public enum ResourceType { Oil, Money }
 
-
-
-
-class Resource<Type>
-{
-
-}
 

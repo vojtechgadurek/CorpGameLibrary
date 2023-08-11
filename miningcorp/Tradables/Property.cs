@@ -1,23 +1,28 @@
 ﻿using GameCorpLib.State;
 using GameCorpLib.Tradables;
+using System.Reflection.Metadata.Ecma335;
 
 namespace GameCorpLib
 {
-	public abstract class Property : ITradable
+	public abstract class Property
 	{
-		public readonly int Id;
-		public Trader owner;
-		private bool _lockedForTrade = false;
+		private readonly int _id;
+		public int Id { get => _id; }
+		public Trader Owner;
+		bool _lockedForTrade = false;
+		private PropertyRegister _propertyRegister;
 		public Property(Trader owner, PropertyRegister propertyRegister)
 		{
 			//Adds id
-			propertyRegister.RegisterItem(this, out int Id);
-			this.owner = owner;
+			propertyRegister.RegisterItem(this, out _id);
+			this.Owner = owner;
+			_propertyRegister = propertyRegister;
 		}
 
 		public void ChangeOwner(Trader newOwner)
 		{
-			throw new NotImplementedException();
+			Owner.Properties.Remove(this);
+			newOwner.Properties.Add(this);
 		}
 
 		public bool TryLockForTrade()

@@ -15,9 +15,11 @@ namespace GameCorpLib
 		public Registers Registers = new Registers();
 		public OilFieldProspector OilMineProspector;
 
+		// Game setup variable
+		public Resource MinePrice = Resource.CreateMoney(1000);
 		public Game()
 		{
-			OilMineProspector = new OilFieldProspector(Registers.PropertyRegister);
+			OilMineProspector = new OilFieldProspector(Registers.PropertyRegister, MinePrice);
 			CreateAdminAccount();
 		}
 		void CreateAdminAccount()

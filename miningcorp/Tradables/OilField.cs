@@ -26,7 +26,7 @@ namespace GameCorpLib.Tradables
 		{
 			lock (this)
 			{
-				if (!owner.Stock.TryAddResource(new Resource(ResourceType.Money, BasePricePerRigBought))) return false;
+				if (!Owner.Stock.TryAddResource(new Resource(ResourceType.Money, BasePricePerRigBought))) return false;
 				NumberOfMiningRings++;
 				return true;
 			}
@@ -35,9 +35,9 @@ namespace GameCorpLib.Tradables
 		{
 			double AmountMinedThisRound = (AmountLeft / AllOil) / HalfMiningTime * NumberOfMiningRings;
 			if (AmountMinedThisRound > AmountLeft) AmountMinedThisRound = AmountLeft;
-			owner.Oil += AmountMinedThisRound;
+			Owner.Stock.ForceIncreaseResources(new Resource(ResourceType.Oil, AmountMinedThisRound));
 			AmountLeft -= AmountMinedThisRound;
-			owner.Money -= AmountMinedThisRound * PricePerUnitMined;
+			Owner.Stock.ForceIncreaseResources(new Resource(ResourceType.Money, -AmountMinedThisRound * PricePerUnitMined));
 		}
 	}
 

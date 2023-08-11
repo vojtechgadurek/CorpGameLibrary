@@ -1,5 +1,6 @@
 ﻿using GameCorpLib.Persons;
 using GameCorpLib.Tradables;
+using System.Collections;
 using System.Transactions;
 
 namespace GameCorpLib
@@ -27,6 +28,12 @@ namespace GameCorpLib
 	public class Properties
 	{
 		private IDictionary<int, Property> _value = new Dictionary<int, Property>();
+
+		
+		public IEnumerable<Property> GetEnumerable()
+		{ 
+			return _value.Values;
+		}
 		public void Remove(Property property)
 		{
 			_value.Remove(property.Id);

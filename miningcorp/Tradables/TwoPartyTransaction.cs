@@ -94,7 +94,12 @@ namespace GameCorpLib.Tradables
 			_from = from;
 			_to = to;
 			_itemTraded = itemTraded;
-			if (!itemTraded.TryLockForTrade()) _transferSetupFailed = true;
+			if (itemTraded.Owner != from)
+			{
+				_transferSetupFailed = true;
+				return;
+			}
+			if (!itemTraded.TryLockForTrade()) { _transferSetupFailed = true; return; };
 			_propertyLocked = true;
 		}
 
@@ -138,12 +143,17 @@ namespace GameCorpLib.Tradables
 	}
 	public class TwoPartyTransaction
 	{
-		static public TwoPartyTransaction Create => new TwoPartyTransaction();
 		bool IsOk = true;
 		Trader _buyer;
 		Trader _seller;
 		IList<ITransactionItem> Items;
 
+		public TwoPartyTransaction(Trader buyer, Trader seller)
+		{
+			_buyer = buyer;
+			_seller = seller;
+			Items = new List<ITransactionItem>();
+		}
 
 		TwoPartyTransaction AddTransactionItem(Resource resource, Trader from, Trader to)
 		{
@@ -185,10 +195,17 @@ namespace GameCorpLib.Tradables
 			}
 			Items.Add(propertyTransaction);
 			return this;
-
 		}
 
-		bool TryExecute()
+		public TwoPartyTransaction AddTransactionItem(Property property, TransactionDirection transactionDirection)
+		{
+			Trader from;
+			Trader to;
+			SetFromAndTo(out from, out to, transactionDirection);
+			return AddTransactionItem(from, to, property);
+		}
+
+		public bool TryExecute()
 		{
 			lock (this)
 			{
