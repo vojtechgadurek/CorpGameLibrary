@@ -21,8 +21,10 @@ namespace GameCorpLib
 
 		public void ChangeOwner(Trader newOwner)
 		{
+
 			Owner.Properties.Remove(this);
 			newOwner.Properties.Add(this);
+			Owner = newOwner;
 		}
 
 		public bool TryLockForTrade()

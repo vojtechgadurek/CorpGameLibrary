@@ -9,14 +9,15 @@ using GameCorpLib.Persons;
 
 namespace GameCorpLib
 {
-	internal class Game
+	public class Game
 	{
 		public int Round = 0;
 		public Registers Registers = new Registers();
 		public OilFieldProspector OilMineProspector;
 
 		// Game setup variable
-		public Resource MinePrice = Resource.CreateMoney(1000);
+		public readonly Resource MinePrice = Resource.CreateMoney(1000);
+		public readonly Resource PlayerStartingMoney = Resource.CreateMoney(10000);
 		public Game()
 		{
 			OilMineProspector = new OilFieldProspector(Registers.PropertyRegister, MinePrice);
@@ -24,7 +25,9 @@ namespace GameCorpLib
 		}
 		void CreateAdminAccount()
 		{
-			new Player("admin", "admin", Registers.PlayersRegister).Stock.TryAddResource(new Resource(ResourceType.Money, 1000000));
+			var player = new Player("admin", "admin", Registers.PlayersRegister).Stock;
+			player.TrySetResourceCapacity(Resource.CreateMoney(100000000));
+			player.TrySetResource(new Resource(ResourceType.Money, 1000000));
 		}
 		public void NewRound()
 		{

@@ -11,7 +11,12 @@ namespace GameCorpLib
 {
 	public class GameControler : IUserMaintainer
 	{
-		Game Game = new Game();
+		/// <summary>
+		/// Game being public is temporary and used only for tests!
+		/// </summary>
+		public readonly Game Game = new Game();
+
+		public Resource OilFieldPrice { get => Game.MinePrice; }
 
 		public GameControler()
 		{
@@ -48,16 +53,24 @@ namespace GameCorpLib
 		{
 			return Game.Round;
 		}
-		public void ForceNewRound(Player player)
+		public void ForceNewRound(Player? player)
 		{
+			if (player == null)
+			{
+				return;
+			}
 			if (player.Admin)
 			{
 				Game.NewRound();
 			}
 		}
 
-		public bool TryProspectNewOilField(Player player)
+		public bool TryProspectNewOilField(Player? player)
 		{
+			if (player == null)
+			{
+				return false;
+			}
 			return Game.OilMineProspector.TryProspectNewMine(player);
 		}
 
@@ -69,6 +82,8 @@ namespace GameCorpLib
 		{
 			MarketWrapper.market.DeterminePriceForTrade(resource);
 		}
+
+
 
 	}
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Persons
 {
-	class OilFieldProspector : Trader
+	public class OilFieldProspector : Trader
 	{
 		Resource _minePrice;
 		IList<OilField> oilMines = new List<OilField>();
