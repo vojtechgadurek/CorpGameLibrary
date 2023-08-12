@@ -39,19 +39,28 @@ namespace GameCorpLib.Tradables
 			return _proportionalTransaction.TryExecuteProportional(resource);
 		}
 
-		public static SpotMarketOffer TryCreateSellOffer(Resource forSale, Resource price, Trader market, Trader seller)
+		public static SpotMarketOffer? TryCreateSellOffer(Resource forSale, Resource price, Trader market, Trader seller)
 		{
-			return new SpotMarketOffer(SpotMarketOfferType.Sell, price, forSale, new ProportionalTransaction(forSale, price * forSale.Amount, seller, market));
+			var proportionalTransaction = new ProportionalTransaction(forSale, price * forSale.Amount, seller, market);
+
+			if (proportionalTransaction.SetupFailed) return null;
+
+			return new SpotMarketOffer(SpotMarketOfferType.Sell, price, forSale, proportionalTransaction);
 		}
-		public static SpotMarketOffer TryCreateBuyOffer(Resource toBuy, Resource price, Trader market, Trader buyer)
+		public static SpotMarketOffer? TryCreateBuyOffer(Resource toBuy, Resource price, Trader market, Trader buyer)
 		{
-			return new SpotMarketOffer(SpotMarketOfferType.Buy, price, toBuy, new ProportionalTransaction(price * toBuy.Amount, toBuy, market, buyer));
+			var proportionalTransaction = new ProportionalTransaction(price * toBuy.Amount, toBuy, market, buyer);
+
+			if (proportionalTransaction.SetupFailed) return null;
+
+			return new SpotMarketOffer(SpotMarketOfferType.Buy, price, toBuy, proportionalTransaction);
 		}
 
 	}
 
 	public class SpotMarket : PriviligedTrader
 	{
+		Resource _govermentBuyout;
 		public SortedSet<SpotMarketOffer> sellOffers = new SortedSet<SpotMarketOffer>();
 		public SortedSet<SpotMarketOffer> buyOffers = new SortedSet<SpotMarketOffer>();
 
@@ -63,6 +72,11 @@ namespace GameCorpLib.Tradables
 				if (ansver == 0) return x.GetHashCode().CompareTo(y.GetHashCode());
 				return ansver;
 			}
+		}
+
+		public SpotMarket(Resource govermentBuyout)
+		{
+			_govermentBuyout = govermentBuyout;
 		}
 		public void RemoveTradeOffer(SortedSet<SpotMarketOffer> list, SpotMarketOffer spotMarketOffer)
 		{
@@ -99,25 +113,53 @@ namespace GameCorpLib.Tradables
 			}
 		}
 
+		public void OnMarketPriceLiqudation(Resource toLiquidate, Player player)
+		{
+			lock (this)
+			{
+				while (toLiquidate.Amount > 0)
+				{
+					var higgestPriceOffer = buyOffers.Last();
+					//If there is no noone to buy then there is goverment to buy :D at very miserable price
+					if (higgestPriceOffer is null)
+					{
+						player.Stock.ForceIncreaseResources(Resource.CreateMoney(toLiquidate.Amount * _govermentBuyout.Amount));
+						return;
+					}
+
+					Resource amountSold = higgestPriceOffer.ResourceTraded < toLiquidate ? higgestPriceOffer.ResourceTraded : toLiquidate;
+					higgestPriceOffer.TryFill(amountSold);
+					player.Stock.ForceIncreaseResources(Resource.CreateMoney(amountSold.Amount * higgestPriceOffer.Price.Amount));
+					toLiquidate -= amountSold;
+				}
+			}
+		}
+
 		public void TryCompleteAsManyAsPossibleTrades()
 		{
 			while (TryCompleteTrade()) ;
 		}
 
-		public void TryCreateNewSellOffer(Resource forSale, Resource price, Trader seller)
+		public bool TryCreateNewTradeOffer(Resource resource, Resource price, Trader trader, SpotMarketOfferType spotMarketOfferType)
 		{
 			lock (this)
 			{
-				sellOffers.Add(SpotMarketOffer.CreateSellOffer(forSale, price, this, seller));
+				SpotMarketOffer? marketOffer;
+				switch (spotMarketOfferType)
+				{
+					case SpotMarketOfferType.Buy:
+						marketOffer = SpotMarketOffer.TryCreateBuyOffer(resource, price, this, trader);
+						break;
+					case SpotMarketOfferType.Sell:
+						marketOffer = SpotMarketOffer.TryCreateSellOffer(resource, price, this, trader);
+						break;
+					default:
+						throw new InvalidOperationException("Unknown SpotMarketOfferType");
+				}
+				if (marketOffer is null) return false;
+				sellOffers.Add(marketOffer);
 				TryCompleteAsManyAsPossibleTrades();
-			}
-		}
-		public void TryCreateNewBuyOffer(Resource toBuy, Resource price, Trader buyer)
-		{
-			lock (this)
-			{
-				buyOffers.Add(SpotMarketOffer.CreateBuyOffer(toBuy, price, this, buyer));
-				TryCompleteAsManyAsPossibleTrades();
+				return true;
 			}
 		}
 

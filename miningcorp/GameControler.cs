@@ -65,11 +65,6 @@ namespace GameCorpLib
 			}
 		}
 
-		public bool TryOfferNewTrade()
-		{
-
-		}
-
 		public bool TryProspectNewOilField(Player? player)
 		{
 			if (player == null)

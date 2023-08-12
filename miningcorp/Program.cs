@@ -201,14 +201,6 @@ public record struct Resource(ResourceType Type, double Amount)
 		}
 		return resource.Amount <= amount.Amount;
 	}
-	public static bool operator ==(Resource resource, Resource amount)
-	{
-		if (resource.Type != amount.Type)
-		{
-			throw new System.Exception("Resources are not of the same type");
-		}
-		return resource.Amount == amount.Amount;
-	}
 };
 
 

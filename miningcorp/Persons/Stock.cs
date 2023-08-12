@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GameCorpLib.Tradables;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -18,7 +19,10 @@ namespace GameCorpLib.Persons
 		}
 		public Stock()
 		{
-			foreach (var resource in Enum.GetValues<ResourceType>()) { resources.Add(resource, new Silo(10000)); };
+			foreach (var resource in Enum.GetValues<ResourceType>())
+			{
+				resources.Add(resource, new Silo(new Resource(resource, 10000)));
+			};
 		}
 		public bool TrySetResource(Resource resource)
 		{
@@ -173,6 +177,34 @@ namespace GameCorpLib.Persons
 		}
 	}
 
+	public class CashSilo : Silo
+	{
+		Bank _bank;
+		Player _player;
+		public CashSilo(Bank bank, Player player) : base(Resource.CreateMoney(double.PositiveInfinity))
+		{
+			_bank = bank;
+			_player = player;
+		}
+		public override void HandleSpill(double spill)
+		{
+			_bank.TakeLoan(_player, Resource.CreateMoney(-spill));
+		}
+	}
+
+	public class HardStuffSilo : Silo
+	{
+		SpotMarket _spotMarket;
+		public HardStuffSilo(Resource capacity, SpotMarket spotMarket) : base(capacity)
+		{
+			_spotMarket = spotMarket;
+		}
+		public override void HandleSpill(double spill)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
 	public class Silo
 	{
 		/// <summary>
@@ -186,7 +218,7 @@ namespace GameCorpLib.Persons
 		/// </summary>
 		private LimitedDouble container;
 
-		double _capacity;
+		Resource _capacity;
 		double _spill = 0; //This is quick fix for over and underfilling the silo
 						   //Potencional solution is force market sale or buy or forced loan
 
@@ -200,7 +232,7 @@ namespace GameCorpLib.Persons
 
 		public double BlockedCapacity
 		{
-			get => _capacity - container.UpperLimit;
+			get => _capacity.Amount - container.UpperLimit;
 		}
 		/// <summary>
 		/// Shows how much resources are locked and are not available for general use 
@@ -217,10 +249,10 @@ namespace GameCorpLib.Persons
 			get => container.UpperLimit - container.Value;
 		}
 
-		public Silo(double capacity)
+		public Silo(Resource capacity)
 		{
 			_capacity = capacity;
-			container = new LimitedDouble(0, capacity, 0);
+			container = new LimitedDouble(0, capacity.Amount, 0);
 		}
 		/// <summary>
 		/// Tries to set amount of resource in the silo, if it has enough capacity otherwise fails
@@ -285,7 +317,8 @@ namespace GameCorpLib.Persons
 		/// <param name="resource"></param>
 		public void ForceIncreaseResource(Resource resource)
 		{
-			container.IncreaseWithSpill(resource.Amount);
+
+			HandleSpill(container.IncreaseWithSpill(resource.Amount));
 		}
 		/// <summary>
 		/// Unlocks resource, so it can be used in normal interactions, amount can not be negative.
@@ -336,8 +369,15 @@ namespace GameCorpLib.Persons
 		}
 		public bool TrySetCapacity(Resource capacity)
 		{
-			_capacity = capacity.Amount;
+			_capacity = capacity;
 			return container.TrySetNewUpperLimit(capacity.Amount);
 		}
+		public virtual void HandleSpill(double spill)
+		{
+			_spill += spill;
+		}
+
 	}
 }
+
+

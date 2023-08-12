@@ -17,6 +17,7 @@ namespace GameCorpLib.Tradables
 		bool _resourceLocked = false;
 		bool _capacityBlocked = false;
 		bool _transferCompleted = false;
+		public bool TransferCompleted { get { return _transferCompleted; } }
 		bool _transferSetUpFailed = false;
 		public bool TransferSetupFailed { get { return _transferSetUpFailed; } }
 
@@ -105,6 +106,7 @@ namespace GameCorpLib.Tradables
 		private Property _itemTraded;
 		private bool _transferSetupFailed = false;
 		private bool _transferCompleted = false;
+		public bool TransferCompleted { get { return _transferCompleted; } }
 		private bool _propertyLocked = false;
 		public bool TransferSetupFailed { get { return _transferSetupFailed; } }
 
@@ -158,6 +160,9 @@ namespace GameCorpLib.Tradables
 	public class ProportionalTransaction
 	{
 		bool _setupFailed = false;
+		public bool SetupFailed { get => _setupFailed; }
+		bool _transactionCompleted = false;
+		public bool TransactionCompleted { get => _transactionCompleted; }
 		bool _resourcesReleased = false;
 		public Resource FromSeller { get => _fromSeller.Resource; }
 		public Resource FromBuyer { get => _fromBuyer.Resource; }
@@ -195,11 +200,21 @@ namespace GameCorpLib.Tradables
 
 				if (resource.Amount > toCompareTo.Amount) return false;
 
+				bool ansver = TryExecuteProportional(resource / toCompareTo.Amount);
 
-				return TryExecuteProportional(resource / toCompareTo.Amount);
+				//If one of the transfers is completed, the other one should be completed too
+				//then transaction is completed
+				if (_fromSeller.TransferCompleted || _fromSeller.TransferCompleted) CompleteTransaction();
+
+				return ansver;
 			}
 		}
 
+		void CompleteTransaction()
+		{
+			_transactionCompleted = true;
+			ReleaseResource();
+		}
 
 		public void ReleaseResource()
 		{
