@@ -5,6 +5,12 @@ using System.Transactions;
 
 namespace GameCorpLib
 {
+	public class PriviligedTrader : Trader
+	{
+		public PriviligedTrader()
+		{
+		}
+	}
 	public class Trader
 	{
 		public Stock Stock = new Stock();
@@ -29,9 +35,9 @@ namespace GameCorpLib
 	{
 		private IDictionary<int, Property> _value = new Dictionary<int, Property>();
 
-		
+
 		public IEnumerable<Property> GetEnumerable()
-		{ 
+		{
 			return _value.Values;
 		}
 		public void Remove(Property property)
