@@ -1,20 +1,20 @@
-﻿using GameCorpLib.Persons;
-using GameCorpLib.Tradables;
+﻿using GameCorpLib.Stock;
+using GameCorpLib.Transactions;
 using System.Collections;
 using System.Transactions;
 
 namespace GameCorpLib
 {
-	public class PriviligedTrader : Trader
-	{
-		public PriviligedTrader()
-		{
-		}
-	}
 	public class Trader
 	{
-		public Stock Stock = new Stock();
+
+		public Stock Stock;
 		public Properties Properties = new Properties();
+
+		public Trader(Stock stock)
+		{
+			Stock = stock;
+		}
 		public double Money { get => Stock.GetResource(ResourceType.Money).Amount; }
 		public double Oil { get => Stock.GetResource(ResourceType.Oil).Amount; }
 
@@ -30,6 +30,19 @@ namespace GameCorpLib
 				.TryExecute();
 		}
 	}
+
+	public class PrivilegedTrader : Trader
+	{
+		/// <summary>
+		/// It used for mocking normal user behaviour, but every operation succed,
+		/// </summary>
+		public PrivilegedTrader() : base(new MagicalStock())
+		{
+		}
+
+	}
+
+
 
 	public class Properties
 	{

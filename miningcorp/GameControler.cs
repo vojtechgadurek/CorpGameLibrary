@@ -71,7 +71,7 @@ namespace GameCorpLib
 			{
 				return false;
 			}
-			return Game.OilMineProspector.TryProspectNewMine(player);
+			return Game.OilMineProspector.TryProspectNewMine(player.Trader);
 		}
 
 		public IDictionary<string, Player> GetPlayers()

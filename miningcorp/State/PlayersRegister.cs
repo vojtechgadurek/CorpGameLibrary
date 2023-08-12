@@ -15,12 +15,12 @@ namespace GameCorpLib.State
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		public Player? TryCreateNewPlayer(string name, string password)
+		public Player? TryCreateNewPlayer(string name, string password, Bank bank, double hardStockCapacity)
 		{
 			lock (_Players)
 			{
 				if (_Players.ContainsKey(name)) return null;
-				Player player = new Player(name, password, this);
+				Player player = new Player(name, password, this, bank, hardStockCapacity);
 				return player;
 			}
 		}

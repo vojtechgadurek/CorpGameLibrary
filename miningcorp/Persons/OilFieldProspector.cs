@@ -1,5 +1,6 @@
 ﻿using GameCorpLib.State;
 using GameCorpLib.Tradables;
+using GameCorpLib.Transactions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Persons
 {
-	public class OilFieldProspector : Trader
+	public class OilFieldProspector : PrivilegedTrader
 	{
 		Resource _minePrice;
 		IList<OilField> oilMines = new List<OilField>();

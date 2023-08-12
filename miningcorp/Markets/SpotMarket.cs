@@ -4,8 +4,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using GameCorpLib.Transactions;
 
-namespace GameCorpLib.Tradables
+namespace GameCorpLib.Markets
 {
 	public enum SpotMarketOfferType
 	{
@@ -23,10 +24,10 @@ namespace GameCorpLib.Tradables
 
 		SpotMarketOffer(SpotMarketOfferType offerType, Resource price, Resource resourceTraded, ProportionalTransaction proportionalTransaction)
 		{
-			this._offerType = offerType;
+			_offerType = offerType;
 			_price = price;
 			_resourceTraded = resourceTraded;
-			this._proportionalTransaction = proportionalTransaction;
+			_proportionalTransaction = proportionalTransaction;
 		}
 
 		public void ReleaseResources()
@@ -58,7 +59,7 @@ namespace GameCorpLib.Tradables
 
 	}
 
-	public class SpotMarket : PriviligedTrader
+	public class SpotMarket : PrivilegedTrader
 	{
 		Resource _govermentBuyout;
 		public SortedSet<SpotMarketOffer> sellOffers = new SortedSet<SpotMarketOffer>();

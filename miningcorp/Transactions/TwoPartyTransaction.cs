@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace GameCorpLib.Tradables
+namespace GameCorpLib.Transactions
 {
 	public interface ITransactionItem
 	{
@@ -196,7 +196,7 @@ namespace GameCorpLib.Tradables
 			lock (this)
 			{
 
-				Resource toCompareTo = (FromSeller.Type == resource.Type) ? FromSeller : FromBuyer;
+				Resource toCompareTo = FromSeller.Type == resource.Type ? FromSeller : FromBuyer;
 
 				if (resource.Amount > toCompareTo.Amount) return false;
 
