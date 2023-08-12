@@ -41,7 +41,7 @@ namespace GameCorpLib
 		/// <returns></returns>
 		public Player? TryRegisterNewPlayer(string name, string password)
 		{
-			return Game.Registers.PlayersRegister.TryCreateNewPlayer(name, password);
+			return Game.Registers.PlayersRegister.TryCreateNewPlayer(name, password, Game.Bank, Game.BaseStockSize);
 		}
 		public Player? TryGetPlayerByName(string name)
 		{

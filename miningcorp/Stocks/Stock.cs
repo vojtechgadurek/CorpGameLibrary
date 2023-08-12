@@ -8,7 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GameCorpLib.Stock
+namespace GameCorpLib.Stocks
 {
 	//Stock by asi chtělo přepsat
 
@@ -65,6 +65,7 @@ namespace GameCorpLib.Stock
 			return resources[resource.Type].TrySetCapacity(resource);
 		}
 	}
+}
 
 
 

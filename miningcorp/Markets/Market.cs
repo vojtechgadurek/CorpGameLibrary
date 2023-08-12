@@ -12,6 +12,7 @@ namespace GameCorpLib.Markets
 		/// <summary>
 		/// Obsolete - will not work correctly at all, I plan to rewrite it to create trading bot
 		/// </summary>
+
 		double BaseStockToEconomyMultiplicator = 10;
 		Economy Economy;
 		double BaseOilPrice = 100;
@@ -19,8 +20,6 @@ namespace GameCorpLib.Markets
 		public Market()
 		{
 			//Money is infinite
-			Stock.TrySetResource(new Resource(ResourceType.Money, Double.PositiveInfinity));
-			Stock.TrySetResource(new Resource(ResourceType.Oil, 1000));
 		}
 		/// <summary>
 		/// Calculates how large the stock should be according to the economy
@@ -39,6 +38,7 @@ namespace GameCorpLib.Markets
 		/// <returns></returns>
 		double GetRatioOfStockToEconomy(ResourceType resourceType)
 		{
+
 			return Stock.GetResource(resourceType).Amount / ExpectedSizeOfStockAcordingToEconomy();
 		}
 

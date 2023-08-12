@@ -1,5 +1,4 @@
 ﻿using GameCorpLib.State;
-using GameCorpLib.Stock;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +20,6 @@ namespace GameCorpLib
 		public Player(string name, string password, PlayersRegister playersRegister, Bank bank, double hardStockSize)
 		{
 			Name = name;
-			Stock.TrySetResource(Resource.CreateMoney(1000));
 			Admin = false;
 			playersRegister.RegisterItem(this, out int id);
 			Password = password;

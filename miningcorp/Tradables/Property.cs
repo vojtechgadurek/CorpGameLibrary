@@ -1,8 +1,7 @@
 ﻿using GameCorpLib.State;
-using GameCorpLib.Tradables;
 using System.Reflection.Metadata.Ecma335;
 
-namespace GameCorpLib
+namespace GameCorpLib.Tradables
 {
 	public abstract class Property
 	{

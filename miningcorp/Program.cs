@@ -2,6 +2,8 @@
 global using GameCorpLib.State;
 global using GameCorpLib.Tradables;
 global using GameCorpLib.Transactions;
+global using GameCorpLib.Stocks;
+global using GameCorpLib.Markets;
 global using System;
 global using System.Collections.Generic;
 global using System.Linq;

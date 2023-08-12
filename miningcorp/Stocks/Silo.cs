@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GameCorpLib.Stock
+namespace GameCorpLib.Stocks
 {
 	public class Silo
 	{
@@ -179,5 +179,4 @@ namespace GameCorpLib.Stock
 		}
 
 	}
-}
 }

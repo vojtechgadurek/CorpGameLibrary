@@ -1,4 +1,4 @@
-﻿using GameCorpLib.Stock;
+﻿using GameCorpLib.Stocks;
 using GameCorpLib.Transactions;
 using System.Collections;
 using System.Transactions;
