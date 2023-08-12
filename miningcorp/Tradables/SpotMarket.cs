@@ -39,11 +39,11 @@ namespace GameCorpLib.Tradables
 			return _proportionalTransaction.TryExecuteProportional(resource);
 		}
 
-		public static SpotMarketOffer CreateSellOffer(Resource forSale, Resource price, Trader market, Trader seller)
+		public static SpotMarketOffer TryCreateSellOffer(Resource forSale, Resource price, Trader market, Trader seller)
 		{
 			return new SpotMarketOffer(SpotMarketOfferType.Sell, price, forSale, new ProportionalTransaction(forSale, price * forSale.Amount, seller, market));
 		}
-		public static SpotMarketOffer CreateBuyOffer(Resource toBuy, Resource price, Trader market, Trader buyer)
+		public static SpotMarketOffer TryCreateBuyOffer(Resource toBuy, Resource price, Trader market, Trader buyer)
 		{
 			return new SpotMarketOffer(SpotMarketOfferType.Buy, price, toBuy, new ProportionalTransaction(price * toBuy.Amount, toBuy, market, buyer));
 		}
@@ -104,7 +104,7 @@ namespace GameCorpLib.Tradables
 			while (TryCompleteTrade()) ;
 		}
 
-		public void CreateNewSellOffer(Resource forSale, Resource price, Trader seller)
+		public void TryCreateNewSellOffer(Resource forSale, Resource price, Trader seller)
 		{
 			lock (this)
 			{
@@ -112,7 +112,7 @@ namespace GameCorpLib.Tradables
 				TryCompleteAsManyAsPossibleTrades();
 			}
 		}
-		public void CreateNewBuyOffer(Resource toBuy, Resource price, Trader buyer)
+		public void TryCreateNewBuyOffer(Resource toBuy, Resource price, Trader buyer)
 		{
 			lock (this)
 			{

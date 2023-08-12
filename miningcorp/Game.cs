@@ -14,6 +14,7 @@ namespace GameCorpLib
 		public int Round = 0;
 		public Registers Registers = new Registers();
 		public OilFieldProspector OilMineProspector;
+		public SpotMarket SpotMarket = new SpotMarket();
 
 		// Game setup variable
 		public readonly Resource MinePrice = Resource.CreateMoney(1000);
