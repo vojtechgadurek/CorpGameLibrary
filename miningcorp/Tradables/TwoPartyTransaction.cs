@@ -1,24 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 
 namespace GameCorpLib.Tradables
 {
-	public interface ITransactionItem : IDisposable
+	public interface ITransactionItem
 	{
 		void ExecuteTransfer();
 		void ReleaseResources();
 	}
+
 	public record class ResourceTransfer : ITransactionItem
 	{
-		public Trader _trom;
+		public Trader _from;
 		public Trader _to;
-		public Resource _resource;
+		public Resource Resource { get => _resource; }
+		private Resource _resource;
 		bool _resourceLocked = false;
 		bool _capacityBlocked = false;
 		bool _transferCompleted = false;
@@ -27,7 +22,7 @@ namespace GameCorpLib.Tradables
 
 		public ResourceTransfer(Trader from, Trader to, Resource resource)
 		{
-			_trom = from;
+			_from = from;
 			_to = to;
 			_resource = resource;
 			_resourceLocked = from.Stock.TryLockResource(resource);
@@ -39,16 +34,48 @@ namespace GameCorpLib.Tradables
 			}
 		}
 
+		public bool TryIncreaseTransferSize(Resource resource)
+		{
+			lock (this)
+			{
+				if (resource.Amount < 0) throw new InvalidOperationException("Resource amount must be positive");
+				var resourceTransfer = new ResourceTransfer(_from, _to, resource);
+				if (resourceTransfer.TransferSetupFailed)
+				{
+					resourceTransfer.ReleaseResources();
+					return false;
+				}
+				_resource.Amount += resource.Amount;
+				return true;
+			}
+		}
+
+		public bool TryExecutePartialTransfer(Resource resource)
+		{
+			lock (this)
+			{
+				if (!(resource.Amount > _resource.Amount)) return false;
+
+				if (!(_resourceLocked && _capacityBlocked && !_transferCompleted)) return false;
+
+				_from.Stock.RemoveLockedResource(resource);
+				_to.Stock.FillBlockedResourceCapacity(resource);
+
+				if (_resource.Amount == 0)
+				{
+					_transferCompleted = true;
+				}
+				return true;
+			}
+
+		}
+
+
 		public void ExecuteTransfer()
 		{
 			lock (this)
 			{
-				if (_resourceLocked && _capacityBlocked && !_transferCompleted)
-				{
-					_trom.Stock.RemoveLockedResource(_resource);
-					_to.Stock.FillBlockedResourceCapacity(_resource);
-					_transferCompleted = true;
-				}
+				TryExecutePartialTransfer(_resource);
 			}
 		}
 
@@ -60,7 +87,7 @@ namespace GameCorpLib.Tradables
 				{
 					if (_resourceLocked)
 					{
-						_trom.Stock.UnlockResource(_resource);
+						_from.Stock.UnlockResource(_resource);
 					}
 					if (_capacityBlocked)
 					{
@@ -68,14 +95,6 @@ namespace GameCorpLib.Tradables
 					}
 					_transferCompleted = true;
 				}
-			}
-		}
-
-		public void Dispose()
-		{
-			if (!_transferCompleted)
-			{
-				ReleaseResources();
 			}
 		}
 	}
@@ -136,17 +155,86 @@ namespace GameCorpLib.Tradables
 	}
 
 
+	public class ProportionalTransaction
+	{
+		bool _setupFailed = false;
+		bool _resourcesReleased = false;
+		public Resource FromSeller { get => _fromSeller.Resource; }
+		public Resource FromBuyer { get => _fromBuyer.Resource; }
+		ResourceTransfer _fromSeller;
+		ResourceTransfer _fromBuyer;
+
+		public ProportionalTransaction(Resource fromSeller, Resource fromBuyer, Trader seller, Trader buyer)
+		{
+			if (fromSeller.Type == fromBuyer.Type) _setupFailed = true;
+			_fromSeller = new ResourceTransfer(seller, buyer, fromSeller);
+			_fromBuyer = new ResourceTransfer(buyer, seller, fromBuyer);
+			_setupFailed |= _fromSeller.TransferSetupFailed;
+			_setupFailed |= _fromBuyer.TransferSetupFailed;
+
+			if (_setupFailed) ReleaseResource();
+		}
+
+		public bool TryExecuteProportional(double proportion)
+		{
+			lock (this)
+			{
+				bool ansver = true;
+				ansver |= _fromSeller.TryExecutePartialTransfer(_fromSeller.Resource * proportion);
+				ansver |= _fromBuyer.TryExecutePartialTransfer(_fromBuyer.Resource * proportion);
+				return ansver;
+			}
+		}
+
+		public bool TryExecuteProportional(Resource resource)
+		{
+			lock (this)
+			{
+
+				Resource toCompareTo = (FromSeller.Type == resource.Type) ? FromSeller : FromBuyer;
+
+				if (resource.Amount > toCompareTo.Amount) return false;
+
+
+				return TryExecuteProportional(resource / toCompareTo.Amount);
+			}
+		}
+
+
+		public void ReleaseResource()
+		{
+			if (!_resourcesReleased)
+			{
+				_fromSeller.ReleaseResources();
+				_fromBuyer.ReleaseResources();
+				_resourcesReleased = true;
+			}
+		}
+
+	}
+
+	public class TransactionUtils
+	{
+
+
+
+	}
+
 	public enum TransactionDirection
 	{
 		FromBuyerToSeller,
 		FromSellerToBuyer
 	}
+
 	public class TwoPartyTransaction
 	{
-		bool IsOk = true;
+		bool _isOk = true;
+		bool _completed = false;
+		bool _resourcesReleased = false;
+		public bool IsOk { get { return _isOk; } }
 		Trader _buyer;
 		Trader _seller;
-		IList<ITransactionItem> Items;
+		protected IList<ITransactionItem> Items;
 
 		public TwoPartyTransaction(Trader buyer, Trader seller)
 		{
@@ -160,7 +248,7 @@ namespace GameCorpLib.Tradables
 			var resourceTransfer = new ResourceTransfer(from, to, resource);
 			if (resourceTransfer.TransferSetupFailed)
 			{
-				IsOk = false;
+				_isOk = false;
 			}
 			Items.Add(resourceTransfer);
 			return this;
@@ -184,14 +272,13 @@ namespace GameCorpLib.Tradables
 			Trader to;
 			SetFromAndTo(out from, out to, transactionDirection);
 			return AddTransactionItem(resource, from, to);
-
 		}
 		TwoPartyTransaction AddTransactionItem(Trader from, Trader to, Property property)
 		{
 			var propertyTransaction = new PropertyTransfer(from, to, property);
 			if (propertyTransaction.TransferSetupFailed)
 			{
-				IsOk = false;
+				_isOk = false;
 			}
 			Items.Add(propertyTransaction);
 			return this;
@@ -209,7 +296,8 @@ namespace GameCorpLib.Tradables
 		{
 			lock (this)
 			{
-				if (IsOk)
+				if (_completed) return false;
+				if (_isOk)
 				{
 					foreach (var item in Items)
 					{
@@ -219,14 +307,25 @@ namespace GameCorpLib.Tradables
 				}
 				else
 				{
-					foreach (var item in Items)
-					{
-						item.ReleaseResources();
-					}
+					ReleaseResources();
 					return false;
 				}
 			}
 
+		}
+
+		public void ReleaseResources()
+		{
+			lock (this)
+			{
+				if (_resourcesReleased) return;
+
+				foreach (var item in Items)
+				{
+					item.ReleaseResources();
+				}
+				_resourcesReleased = true;
+			}
 		}
 	}
 }

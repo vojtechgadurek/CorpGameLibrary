@@ -3,6 +3,7 @@ using GameCorpLib.State;
 using GameCorpLib.Tradables;
 using System.Data;
 using System.Data.SqlTypes;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Cryptography.X509Certificates;
@@ -142,6 +143,31 @@ public record struct Resource(ResourceType Type, double Amount)
 	static public Resource CreateOil(double amount)
 	{
 		return new Resource(ResourceType.Oil, amount);
+	}
+
+	public static Resource operator +(Resource resource, Resource amount)
+	{
+		if (resource.Type != amount.Type)
+		{
+			throw new System.Exception("Resources are not of the same type");
+		}
+		return new Resource(resource.Type, resource.Amount + amount.Amount);
+	}
+	public static Resource operator -(Resource resource, Resource amount)
+	{
+		if (resource.Type != amount.Type)
+		{
+			throw new System.Exception("Resources are not of the same type");
+		}
+		return new Resource(resource.Type, resource.Amount - amount.Amount);
+	}
+	public static Resource operator *(Resource resource, double amount)
+	{
+		return new Resource(resource.Type, resource.Amount * amount);
+	}
+	public static Resource operator /(Resource resource, double amount)
+	{
+		return new Resource(resource.Type, resource.Amount / amount);
 	}
 };
 
