@@ -107,6 +107,10 @@ public record struct Resource(ResourceType Type, double Amount)
 		}
 		return resource.Amount <= amount.Amount;
 	}
+	public static Resource operator -(Resource resource)
+	{
+		return new Resource(resource.Type, -resource.Amount);
+	}
 };
 
 
