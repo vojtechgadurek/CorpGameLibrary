@@ -19,10 +19,12 @@ namespace GameCorpLib.Stocks
 		/// </summary>
 		private LimitedDouble limitedDouble;
 
-		//Implement
-		private LockedResourceManager<TResourceType> lockedResourceManager = new LockedResourceManager<TResourceType>();
+		//Implement locking and blocking
+		private LockedResourceManager<TResourceType> lockedResourceManager;
+		private BlockedResourceManager<TResourceType> blockedResourceManager;
 		Action<R<TResourceType>> releaseResource;
 		Action<R<TResourceType>> takeResource;
+		Action<R<TResourceType>> useResource;
 
 
 		R<Capacity<TResourceType>> _capacity;
@@ -33,7 +35,11 @@ namespace GameCorpLib.Stocks
 			_capacity = capacity;
 			limitedDouble = new LimitedDouble(0, capacity.Amount, 0);
 			releaseResource = (R<TResourceType> resourceToRelease) => { UnlockResource(resourceToRelease); };
-			takeResource = (R<TResourceType> resourceToTake) => { LockResource(resourceToTake); };
+			takeResource = (R<TResourceType> resourceToTake) => { UseLockedResource(resourceToTake); };
+			lockedResourceManager = new LockedResourceManager<TResourceType>(releaseResource, takeResource);
+			useResource = (R<TResourceType> resourceToUse) => { UseBlockedResourceCapacity(resourceToUse); };
+			blockedResourceManager = new BlockedResourceManager<TResourceType>(releaseResource, useResource);
+
 		}
 		/// <summary>
 		/// Shows how much resources are in the silo, locked and unlocked combined
@@ -179,6 +185,18 @@ namespace GameCorpLib.Stocks
 		{
 			_capacity = capacity;
 			return limitedDouble.TrySetNewUpperLimit(capacity.Amount);
+		}
+
+		public Locked<TResourceType>? TryGetLockOnResource(R<TResourceType> resource)
+		{
+			if (!TryLockResource(resource)) return null;
+			return lockedResourceManager.CreateLocked(resource);
+		}
+
+		public Blocked<TResourceType>? TryGetBlockOnCapacity(R<TResourceType> capacity)
+		{
+			if (!TryBlockCapacity(capacity.GetCapacity())) return null;
+			return blockedResourceManager.CreateBlocked(capacity);
 		}
 
 		public virtual void HandleSpill(R<TResourceType> spill)
