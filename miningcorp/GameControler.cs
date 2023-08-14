@@ -78,12 +78,5 @@ namespace GameCorpLib
 		{
 			return Game.Registers.PlayersRegister._Players;
 		}
-		public void GetPriceForTrade(Resource resource)
-		{
-			MarketWrapper.market.DeterminePriceForTrade(resource);
-		}
-
-
-
 	}
 }

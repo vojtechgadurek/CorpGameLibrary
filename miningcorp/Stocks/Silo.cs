@@ -118,8 +118,8 @@ namespace GameCorpLib.Stocks
 		/// <param name="resource"></param>
 		public void ForceIncreaseResource(Resource resource)
 		{
-
-			HandleSpill(container.IncreaseWithSpill(resource.Amount));
+			double spill = container.IncreaseWithSpill(resource.Amount);
+			if (spill > 0) HandleSpill(spill);
 		}
 		/// <summary>
 		/// Unlocks resource, so it can be used in normal interactions, amount can not be negative.

@@ -53,10 +53,11 @@ namespace GameCorpLib.Transactions
 		{
 			lock (this)
 			{
-				if (!(resource.Amount > _resource.Amount)) return false;
+				if ((resource.Amount > _resource.Amount)) return false;
 
 				if (!(_resourceLocked && _capacityBlocked && !_transferCompleted)) return false;
 
+				_resource -= resource;
 				_from.Stock.RemoveLockedResource(resource);
 				_to.Stock.FillBlockedResourceCapacity(resource);
 

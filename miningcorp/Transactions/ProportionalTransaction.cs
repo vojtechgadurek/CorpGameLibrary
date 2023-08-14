@@ -26,16 +26,19 @@ namespace GameCorpLib.Transactions
 			_setupFailed |= _fromSeller.TransferSetupFailed;
 			_setupFailed |= _fromBuyer.TransferSetupFailed;
 
-			if (_setupFailed) ReleaseResource();
+			if (_setupFailed) CompleteTransaction();
 		}
 
 		public bool TryExecuteProportional(double proportion)
 		{
+			if (_transactionCompleted || _resourcesReleased) return false;
+			if (proportion > 1) return false;
 			lock (this)
 			{
 				bool ansver = true;
 				ansver |= _fromSeller.TryExecutePartialTransfer(_fromSeller.Resource * proportion);
 				ansver |= _fromBuyer.TryExecutePartialTransfer(_fromBuyer.Resource * proportion);
+				if (_fromSeller.TransferCompleted || _fromSeller.TransferCompleted) CompleteTransaction();
 				return ansver;
 			}
 		}
@@ -49,11 +52,10 @@ namespace GameCorpLib.Transactions
 
 				if (resource.Amount > toCompareTo.Amount) return false;
 
-				bool ansver = TryExecuteProportional(resource / toCompareTo.Amount);
+				bool ansver = TryExecuteProportional(resource.Amount / toCompareTo.Amount);
 
 				//If one of the transfers is completed, the other one should be completed too
 				//then transaction is completed
-				if (_fromSeller.TransferCompleted || _fromSeller.TransferCompleted) CompleteTransaction();
 
 				return ansver;
 			}

@@ -40,11 +40,6 @@ class Economy
 	}
 }
 
-static class MarketWrapper
-{
-	public static Market market = new Market();
-}
-
 public record struct Resource(ResourceType Type, double Amount)
 {
 	static public Resource CreateMoney(double amount)

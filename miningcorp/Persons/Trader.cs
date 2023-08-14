@@ -18,10 +18,6 @@ namespace GameCorpLib
 		public double Money { get => Stock.GetResource(ResourceType.Money).Amount; }
 		public double Oil { get => Stock.GetResource(ResourceType.Oil).Amount; }
 
-		public void ExchangeResource(Resource resource, Trader from, Trader to)
-		{
-			new ResourceTransfer(from, to, resource).ExecuteTransfer();
-		}
 		public bool TryDoTrade(Resource fromBuyer, Resource fromSeller, Trader buyer, Trader seller)
 		{
 			return new TwoPartyTransaction(buyer, seller)
