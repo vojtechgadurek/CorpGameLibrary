@@ -19,13 +19,12 @@ namespace GameCorpLib.Tradables
 		public static implicit operator Money(R<Money> d) => new Money(d.Amount);
 		public static implicit operator R<Money>(Money d) => new R<Money>(d.Amount);
 	}
-	public class Oil
+	public struct Oil
 	{
 
 	}
-	public class Capacity<TResource>
+	public struct Capacity<TResource>
 	{
-
 	}
 	public struct R<TResource>
 	{

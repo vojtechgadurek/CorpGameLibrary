@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Utils
 {
+	public struct ValueOrError<T, Err>
+	{
+		public T Value;
+		public Err Error;
+	}
+
 	public class Maybe<T> where T : class
 	{
 		T? Value;

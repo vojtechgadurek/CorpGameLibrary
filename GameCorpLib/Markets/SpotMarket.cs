@@ -150,6 +150,7 @@ namespace GameCorpLib.Markets
 		{
 			lock (this)
 			{
+				if (resource <= 0.Create<TResourceTradedType>()) return false;
 				SpotMarketOffer<TResourceTradedType>? marketOffer = SpotMarketOffer<TResourceTradedType>.TryCreateTradeOffer(
 					resource, price, this, trader, spotMarketOfferType);
 				if (marketOffer is null) return false;

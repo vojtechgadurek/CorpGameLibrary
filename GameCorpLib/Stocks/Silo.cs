@@ -160,7 +160,7 @@ namespace GameCorpLib.Stocks
 		{
 			lock (this)
 			{
-				if (resource.Amount < -1) throw new InvalidOperationException("Amount of resource to use locked resources should be positive");
+				if (resource.Amount < 0) throw new InvalidOperationException("Amount of resource to use locked resources should be positive");
 				bool ok = false;
 				ok |= limitedDouble.TryIncreaseLowerLimit(-resource.Amount);
 				ok |= limitedDouble.TryIncreaseValue(-resource.Amount);

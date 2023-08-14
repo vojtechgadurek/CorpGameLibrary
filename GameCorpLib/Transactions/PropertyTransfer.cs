@@ -11,6 +11,7 @@ namespace GameCorpLib.Transactions
 		private Trader _from;
 		private Trader _to;
 		private Property _itemTraded;
+		public string Error { get; private set; }
 		private bool _transferSetupFailed = false;
 		private bool _transferCompleted = false;
 		public bool TransferCompleted { get { return _transferCompleted; } }

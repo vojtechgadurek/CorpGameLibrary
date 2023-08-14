@@ -35,6 +35,7 @@ namespace GameCorpLib.Stocks
 
 		public abstract void ForceIncreaseResources<TResourceType>(R<TResourceType> resource);
 		public abstract bool TrySetResourceCapacity<TResourceType>(R<Capacity<TResourceType>> resource);
+
 	}
 }
 
