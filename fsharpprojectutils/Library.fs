@@ -1,4 +1,0 @@
-﻿namespace fsharpprojectutils
-
-module Say =
-    
