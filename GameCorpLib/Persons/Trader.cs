@@ -15,10 +15,10 @@ namespace GameCorpLib
 		{
 			Stock = stock;
 		}
-		public double Money { get => Stock.GetResource(ResourceType.Money).Amount; }
-		public double Oil { get => Stock.GetResource(ResourceType.Oil).Amount; }
+		public R<Money> Money { get => Stock.GetResource<Money>(); }
+		public R<Oil> Oil { get => Stock.GetResource<Oil>(); }
 
-		public bool TryDoTrade(Resource fromBuyer, Resource fromSeller, Trader buyer, Trader seller)
+		public bool TryDoTrade<TResourceTypeFromBuyer, TResourceTypeFromSeller>(R<TResourceTypeFromBuyer> fromBuyer, R<TResourceTypeFromSeller> fromSeller, Trader buyer, Trader seller)
 		{
 			return new TwoPartyTransaction(buyer, seller)
 				.AddTransactionItem(fromBuyer, TransactionDirection.FromBuyerToSeller)

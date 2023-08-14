@@ -11,14 +11,13 @@ namespace GameCorpLib
 		private double _interestPerRound = 10;
 		public double InterestPerRound { get => _interestPerRound; }
 
-		Dictionary<Player, Resource> _loans = new Dictionary<Player, Resource>();
+		Dictionary<Player, R<Money>> _loans = new Dictionary<Player, R<Money>>();
 		public Bank(double interestPerRound)
 		{
 			_interestPerRound = interestPerRound;
 		}
-		public void TakeLoan(Player player, Resource cashToBorrow)
+		public void TakeLoan(Player player, R<Money> cashToBorrow)
 		{
-			if (cashToBorrow.Type != ResourceType.Money) throw new InvalidOperationException();
 			if (_loans.ContainsKey(player))
 			{
 				_loans[player] += cashToBorrow;
@@ -30,9 +29,9 @@ namespace GameCorpLib
 			player.Stock.ForceIncreaseResources(cashToBorrow);
 		}
 
-		public Resource GetCashLend(Player player)
+		public R<Money> GetCashLend(Player player)
 		{
-			if (!_loans.ContainsKey(player)) _loans.Add(player, Resource.CreateMoney(0));
+			if (!_loans.ContainsKey(player)) _loans.Add(player, new R<Money>(0));
 			return _loans[player];
 		}
 

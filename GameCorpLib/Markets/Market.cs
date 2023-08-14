@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 //NOT WORKING
+//Maybe was but curently not updated to no static unit measures
+/*
 namespace GameCorpLib.Markets
 {
 	class Market : PrivilegedTrader
@@ -58,7 +60,7 @@ namespace GameCorpLib.Markets
 		/// <param name="expectedChangeOfStock"></param>
 		/// How much of the stock is going to be change (units)
 		/// <returns></returns>
-		double GetFulfilmentOfStockAfterChange(Resource expectedChangeOfStock)
+		double GetFulfilmentOfStockAfterChange(R expectedChangeOfStock)
 		{
 			return GetRatioOfStockToEconomy(expectedChangeOfStock.Type) + GetProportionOfChangeToStock(expectedChangeOfStock.Amount);
 		}
@@ -70,7 +72,7 @@ namespace GameCorpLib.Markets
 		double DeterminePrice(ResourceType resourceType)
 		{
 			//Uses formula price = 1/x^2
-			double fulfilmentOfStock = GetFulfilmentOfStockAfterChange(new Resource(resourceType, 0));
+			double fulfilmentOfStock = GetFulfilmentOfStockAfterChange(new R(resourceType, 0));
 			return BaseOilPrice * (1 / Math.Pow(fulfilmentOfStock, 2));
 		}
 		/// <summary>
@@ -80,7 +82,7 @@ namespace GameCorpLib.Markets
 		/// What resource at what quantity is going to be bought
 		/// <param name="resourceToBeBought"></param>
 		/// <returns></returns>
-		public double DeterminePriceForTrade(Resource resourceToBeBought)
+		public double DeterminePriceForTrade(R resourceToBeBought)
 		{
 			//Integral of the price 
 			double fulfilmentOfStock = GetRatioOfStockToEconomy(resourceToBeBought.Type);
@@ -92,11 +94,12 @@ namespace GameCorpLib.Markets
 			double price = (Integral(newFulfilmentOfStock) - Integral(fulfilmentOfStock)) / ExpectedSizeOfStockAcordingToEconomy();
 			return price;
 		}
-		bool TryTrade(Trader counterparty, Resource resource)
+		bool TryTrade(Trader counterparty, resource)
 		{
 			double price = DeterminePriceForTrade(resource);
 			//This expect non-negative cash on company accounts
-			return TryDoTrade(new Resource(ResourceType.Money, price), resource, this, counterparty);
+			return TryDoTrade(new R(ResourceType.Money, price), resource, this, counterparty);
 		}
 	}
 }
+*/

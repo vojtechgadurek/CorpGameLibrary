@@ -6,23 +6,23 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Transactions
 {
-	public class ProportionalTransaction
+	public class TwoPartyProportionalTransaction<TFromSellerResourceType, TFromBuyerResourceType>
 	{
 		bool _setupFailed = false;
 		public bool SetupFailed { get => _setupFailed; }
 		bool _transactionCompleted = false;
 		public bool TransactionCompleted { get => _transactionCompleted; }
 		bool _resourcesReleased = false;
-		public Resource FromSeller { get => _fromSeller.Resource; }
-		public Resource FromBuyer { get => _fromBuyer.Resource; }
-		ResourceTransfer _fromSeller;
-		ResourceTransfer _fromBuyer;
+		public R<TFromSellerResourceType> FromSeller { get => _fromSeller.Resource; }
+		public R<TFromBuyerResourceType> FromBuyer { get => _fromBuyer.Resource; }
+		ResourceTransfer<TFromSellerResourceType> _fromSeller;
+		ResourceTransfer<TFromBuyerResourceType> _fromBuyer;
 
-		public ProportionalTransaction(Resource fromSeller, Resource fromBuyer, Trader seller, Trader buyer)
+		public TwoPartyProportionalTransaction(R<TFromSellerResourceType> fromSeller, R<TFromBuyerResourceType> fromBuyer, Trader seller, Trader buyer)
 		{
-			if (fromSeller.Type == fromBuyer.Type) _setupFailed = true;
-			_fromSeller = new ResourceTransfer(seller, buyer, fromSeller);
-			_fromBuyer = new ResourceTransfer(buyer, seller, fromBuyer);
+			if (fromSeller.GetType() == fromBuyer.GetType()) throw new InvalidOperationException("Resource types must be different");
+			_fromSeller = new ResourceTransfer<TFromSellerResourceType>(seller, buyer, fromSeller);
+			_fromBuyer = new ResourceTransfer<TFromBuyerResourceType>(buyer, seller, fromBuyer);
 			_setupFailed |= _fromSeller.TransferSetupFailed;
 			_setupFailed |= _fromBuyer.TransferSetupFailed;
 
@@ -43,16 +43,16 @@ namespace GameCorpLib.Transactions
 			}
 		}
 
-		public bool TryExecuteProportional(Resource resource)
+		public bool TryExecuteProportional<TResourceType>(R<TResourceType> resource)
 		{
 			lock (this)
 			{
 
-				Resource toCompareTo = (FromSeller.Type == resource.Type) ? FromSeller : FromBuyer;
+				double toCompareTo = FromSeller.GetType() == resource.GetType() ? FromSeller.Amount : FromBuyer.Amount;
 
-				if (resource.Amount > toCompareTo.Amount) return false;
+				if (resource.Amount > toCompareTo) return false;
 
-				bool ansver = TryExecuteProportional(resource.Amount / toCompareTo.Amount);
+				bool ansver = TryExecuteProportional(resource.Amount / toCompareTo);
 
 				//If one of the transfers is completed, the other one should be completed too
 				//then transaction is completed

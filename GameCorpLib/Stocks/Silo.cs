@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Stocks
 {
-	public class Silo
+	public class Silo<TResourceType>
 	{
 		/// <summary>
 		/// Silo is used for storing resources, it has a capacity and enforces it. It maybe be possible to overfill or underfill with force methods
@@ -17,109 +17,108 @@ namespace GameCorpLib.Stocks
 		/// TODO
 		/// It may be good idea to provide some sort of tracking for blocked resources, so it may be easier to debug etc.
 		/// </summary>
-		private LimitedDouble container;
+		private LimitedDouble limitedDouble;
 
-		Resource _capacity;
-		double _spill = 0; //This is quick fix for over and underfilling the silo
-						   //Potencional solution is force market sale or buy or forced loan
-
+		R<Capacity<TResourceType>> _capacity;
+		R<TResourceType> _spill = new R<TResourceType>(0); //This is quick fix for over and underfilling the silo
+														   //Potencional solution is force market sale or buy or forced loan
+		public Silo(R<Capacity<TResourceType>> capacity)
+		{
+			_capacity = capacity;
+			limitedDouble = new LimitedDouble(0, capacity.Amount, 0);
+		}
 		/// <summary>
 		/// Shows how much resources are in the silo, locked and unlocked combined
 		/// </summary>
-		public double Amount
+		public R<TResourceType> Amount
 		{
-			get => container.Value;
+			get => new R<TResourceType>(limitedDouble.Value);
 		}
 
 		public double BlockedCapacity
 		{
-			get => _capacity.Amount - container.UpperLimit;
+			get => _capacity.Amount - limitedDouble.UpperLimit;
 		}
 		/// <summary>
 		/// Shows how much resources are locked and are not available for general use 
 		/// </summary>
 		public double LockedResource
 		{
-			get => container.LowerLimit;
+			get => limitedDouble.LowerLimit;
 		}
 		/// <summary>
 		/// Show capacity not blocked or not used by reasources 
 		/// </summary>
 		public double FreeCapacity
 		{
-			get => container.UpperLimit - container.Value;
+			get => limitedDouble.UpperLimit - limitedDouble.Value;
 		}
 
-		public Silo(Resource capacity)
-		{
-			_capacity = capacity;
-			container = new LimitedDouble(0, capacity.Amount, 0);
-		}
 		/// <summary>
 		/// Tries to set amount of resource in the silo, if it has enough capacity otherwise fails
 		/// </summary>
 		/// <param name="resource"></param>
 		/// <returns></returns>
-		public bool TrySetAmount(Resource resource)
+		public bool TrySetAmount(R<TResourceType> resource)
 		{
-			return container.TrySetNewValue(resource.Amount);
+			return limitedDouble.TrySetNewValue(resource.Amount);
 		}
 		/// <summary>
 		/// Tries to increase amount of resource in the silo by the amount specified, if it has enough capacity otherwise fails. Amount may be negative.
 		/// </summary>
 		/// <param name="resource"></param>
 		/// <returns></returns>
-		public bool TryIncreaseAmount(Resource resource)
+		public bool TryIncreaseAmount(R<TResourceType> resource)
 		{
-			return container.TryIncreaseValue(resource.Amount);
+			return limitedDouble.TryIncreaseValue(resource.Amount);
 		}
 		/// <summary>
 		/// Tries to block capacity for the resource, if it has enough capacity otherwise fails, amount can not be negative.
 		/// </summary>
 		/// <param name="resource"></param>
 		/// <returns></returns>
-		public bool TryBlockCapacity(Resource resource)
+		public bool TryBlockCapacity(R<Capacity<TResourceType>> resource)
 		{
 			if (resource.Amount < 0)
 			{
 				throw new InvalidOperationException("You can not block negative capacity");
 			}
-			return container.TryIncreaseUpperLimit(-resource.Amount);
+			return limitedDouble.TryIncreaseUpperLimit(-resource.Amount);
 		}
 		/// <summary>
 		/// Unblock capacity for the resource, amount can not be negative.
 		/// </summary>
 		/// <param name="resource"></param>
-		public void UnblockCapacity(Resource resource)
+		public void UnblockCapacity(R<Capacity<TResourceType>> resource)
 		{
 			//Should never fail
-			if (!container.TryIncreaseUpperLimit(resource.Amount))
+			if (!limitedDouble.TryIncreaseUpperLimit(resource.Amount))
 			{
 				throw new InvalidOperationException("You can not unblock capacity that was not blocked");
 			}
-			container.TryIncreaseUpperLimit(resource.Amount);
+			limitedDouble.TryIncreaseUpperLimit(resource.Amount);
 		}
 		/// <summary>
 		/// Locks resource, so it can not be used in normal interactions, amount can not be negative.
 		/// </summary>
 		/// <param name="resource"></param>
 		/// <returns></returns>
-		public bool TryLockResource(Resource resource)
+		public bool TryLockResource(R<TResourceType> resource)
 		{
 			if (resource.Amount < 0)
 			{
 				throw new InvalidOperationException("You can not lock negative amount of resource");
 			}
-			return container.TryIncreaseLowerLimit(resource.Amount);
+			return limitedDouble.TryIncreaseLowerLimit(resource.Amount);
 		}
 		/// <summary>
 		/// Forces increase of resource in the silo, it may overfill or underfill the silo
 		/// </summary>
 		/// <param name="resource"></param>
-		public void ForceIncreaseResource(Resource resource)
+		public void ForceIncreaseResource(R<TResourceType> resource)
 		{
-			double spill = container.IncreaseWithSpill(resource.Amount);
-			if (spill > 0) HandleSpill(spill);
+			double spill = limitedDouble.IncreaseWithSpill(resource.Amount);
+			if (spill > 0) HandleSpill(new R<TResourceType>(spill));
 		}
 		/// <summary>
 		/// Unlocks resource, so it can be used in normal interactions, amount can not be negative.
@@ -127,12 +126,12 @@ namespace GameCorpLib.Stocks
 		/// <param name="resource"></param>
 		/// <returns></returns>
 		/// <exception cref="InvalidOperationException"></exception>
-		public void UnlockResource(Resource resource)
+		public void UnlockResource(R<TResourceType> resource)
 		{
 			if (resource.Amount < 0) throw new InvalidOperationException($"resource {resource.Amount} may not be negative");
-			container.TryIncreaseLowerLimit(-resource.Amount);
+			limitedDouble.TryIncreaseLowerLimit(-resource.Amount);
 			//Lower limit should not be negative and it means that to much resources was unlocked
-			if (container.LowerLimit < 0) throw new InvalidOperationException("Lower limit was set to negative values");
+			if (limitedDouble.LowerLimit < 0) throw new InvalidOperationException("Lower limit was set to negative values");
 		}
 
 		/// <summary>
@@ -140,14 +139,14 @@ namespace GameCorpLib.Stocks
 		/// </summary>
 		/// <param name="resource"></param>
 		/// <exception cref="InvalidOperationException"></exception>
-		public void UseBlockedResourceCapacity(Resource resource)
+		public void UseBlockedResourceCapacity(R<TResourceType> resource)
 		{
 			lock (this)
 			{
 				if (resource.Amount < 0) throw new InvalidOperationException("Amount of resource to use blocked capacity should be positive");
 				bool ok = true;
-				ok &= container.TryIncreaseUpperLimit(resource.Amount);
-				ok &= container.TryIncreaseValue(resource.Amount);
+				ok &= limitedDouble.TryIncreaseUpperLimit(resource.Amount);
+				ok &= limitedDouble.TryIncreaseValue(resource.Amount);
 				if (!ok) throw new InvalidOperationException("Could not use blocked capacity");
 			}
 		}
@@ -157,23 +156,23 @@ namespace GameCorpLib.Stocks
 		/// </summary>
 		/// <param name="resource"></param>
 		/// <exception cref="InvalidOperationException"></exception>
-		public void UseLockedResource(Resource resource)
+		public void UseLockedResource(R<TResourceType> resource)
 		{
 			lock (this)
 			{
 				if (resource.Amount < -1) throw new InvalidOperationException("Amount of resource to use locked resources should be positive");
 				bool ok = false;
-				ok |= container.TryIncreaseLowerLimit(-resource.Amount);
-				ok |= container.TryIncreaseValue(-resource.Amount);
+				ok |= limitedDouble.TryIncreaseLowerLimit(-resource.Amount);
+				ok |= limitedDouble.TryIncreaseValue(-resource.Amount);
 				if (!ok) throw new InvalidOperationException("Could not use locked resources");
 			}
 		}
-		public bool TrySetCapacity(Resource capacity)
+		public bool TrySetCapacity(R<Capacity<TResourceType>> capacity)
 		{
 			_capacity = capacity;
-			return container.TrySetNewUpperLimit(capacity.Amount);
+			return limitedDouble.TrySetNewUpperLimit(capacity.Amount);
 		}
-		public virtual void HandleSpill(double spill)
+		public virtual void HandleSpill(R<TResourceType> spill)
 		{
 			_spill += spill;
 		}

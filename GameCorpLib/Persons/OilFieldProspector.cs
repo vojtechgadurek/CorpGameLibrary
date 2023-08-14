@@ -11,15 +11,14 @@ namespace GameCorpLib.Persons
 {
 	public class OilFieldProspector : PrivilegedTrader
 	{
-		Resource _minePrice;
+		R<Money> _minePrice;
 		IList<OilField> oilMines = new List<OilField>();
 		int oilMinesSold;
 		PropertyRegister _propertyRegister;
 
-		public OilFieldProspector(PropertyRegister propertyRegister, Resource minePrice)
+		public OilFieldProspector(PropertyRegister propertyRegister, R<Money> minePrice)
 		{
 			_propertyRegister = propertyRegister;
-			Stock.TrySetResourceCapacity(Resource.CreateOil(double.PositiveInfinity));
 			_minePrice = minePrice;
 		}
 		public bool TryProspectNewMine(Trader buyer)

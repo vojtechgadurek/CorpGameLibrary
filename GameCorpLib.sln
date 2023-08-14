@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameCorpLib", "GameCorpLib\GameCorpLib.csproj", "{251C0050-DB1A-4E92-9A94-BA24CF6AA328}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CorpGameLibTests", "CorpGameLibTests\CorpGameLibTests.csproj", "{2662596A-F401-419F-8199-ED99562CD105}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{251C0050-DB1A-4E92-9A94-BA24CF6AA328}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{251C0050-DB1A-4E92-9A94-BA24CF6AA328}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{251C0050-DB1A-4E92-9A94-BA24CF6AA328}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2662596A-F401-419F-8199-ED99562CD105}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2662596A-F401-419F-8199-ED99562CD105}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2662596A-F401-419F-8199-ED99562CD105}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2662596A-F401-419F-8199-ED99562CD105}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

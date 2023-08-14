@@ -12,50 +12,55 @@ namespace GameCorpLib.Tradables
 	{
 		public OilField(Trader owner, PropertyRegister propertyRegister) : base(owner, propertyRegister)
 		{
-			PricePerUnitMined = 100 * Random.Shared.NextDouble();
-			AllOil = 10000 * Random.Shared.NextDouble();
+			PricePerUnitMined = new R<Money>(100 * Random.Shared.NextDouble());
+			AllOil = new R<Oil>(10000 * Random.Shared.NextDouble());
 			AmountLeft = AllOil;
 		}
-		public double PricePerUnitMined;
-		double AllOil;
-		double AmountLeft;
+		public R<Money> PricePerUnitMined;
+		R<Oil> AllOil;
+		R<Oil> AmountLeft;
 		public int NumberOfMiningRings = 0;
-		public double BasePricePerRigBought = 100;
+		public R<Money> BasePricePerRigBought = new R<Money>(100);
 		double HalfMiningTime = 100;
 
-		public double GetExpectedMinedOilUnits()
+		public R<Oil> GetExpectedMinedOilUnits()
 		{
-			double ansver = (AmountLeft) / HalfMiningTime * NumberOfMiningRings;
+			R<Oil> ansver = (AmountLeft) * NumberOfMiningRings / HalfMiningTime;
 			if (ansver > AmountLeft) ansver = AmountLeft;
 			return ansver;
 		}
 
-		public Resource GetExpectedCostForMining()
+		public R<Money> GetExpectedCostForMining()
 		{
-			return Resource.CreateMoney(-GetExpectedMinedOilUnits() * PricePerUnitMined);
+			return new R<Money>(-GetExpectedMinedOilUnits().Amount * PricePerUnitMined.Amount);
 		}
 		public bool TryBuyMiningRing()
 		{
 			lock (this)
 			{
-				if (!Owner.Stock.TryAddResource(Resource.CreateMoney(-BasePricePerRigBought))) return false;
+				if (!Owner.Stock.TryAddResource(-BasePricePerRigBought)) return false;
 				NumberOfMiningRings++;
 				return true;
 			}
 		}
+
+		public R<Oil> Mine()
+		{
+			R<Oil> AmountMinedThisRound = GetExpectedMinedOilUnits();
+			AmountLeft -= AmountMinedThisRound;
+			return AmountMinedThisRound;
+		}
+
 		public override void Update()
 		{
 			lock (this)
 			{
-				double AmountMinedThisRound = GetExpectedMinedOilUnits();
 				//Pay for mining
 				Owner.Stock.ForceIncreaseResources(GetExpectedCostForMining());
 				//Mine
-				Owner.Stock.ForceIncreaseResources(new Resource(ResourceType.Oil, AmountMinedThisRound));
+				Owner.Stock.ForceIncreaseResources(Mine());
 				//Update amount left
-				AmountLeft -= AmountMinedThisRound;
 			}
-
 		}
 	}
 

@@ -16,7 +16,7 @@ namespace GameCorpLib
 		/// </summary>
 		public readonly Game Game = new Game();
 
-		public Resource OilFieldPrice { get => Game.MinePrice; }
+		public R<Money> OilFieldPrice { get => Game.MinePrice; }
 
 		public GameControler()
 		{
@@ -41,7 +41,7 @@ namespace GameCorpLib
 		/// <returns></returns>
 		public Player? TryRegisterNewPlayer(string name, string password)
 		{
-			return Game.Registers.PlayersRegister.TryCreateNewPlayer(name, password, Game.Bank, Game.BaseStockSize);
+			return Game.Registers.PlayersRegister.TryCreateNewPlayer(name, password, Game.Bank, Game.BaseStockSize, Game.SpotMarket);
 		}
 		public Player? TryGetPlayerByName(string name)
 		{

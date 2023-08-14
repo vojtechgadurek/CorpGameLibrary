@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Stocks
 {
-	public class CashSilo : Silo
+	public class CashSilo : Silo<Money>
 	{
 		Bank _bank;
 		Player _player;
-		public CashSilo(Bank bank, Player player) : base(Resource.CreateMoney(double.PositiveInfinity))
+		public CashSilo(Bank bank, Player player) : base(new R<Capacity<Money>>(double.PositiveInfinity))
 		{
 			_bank = bank;
 			_player = player;
 		}
-		public override void HandleSpill(double spill)
+		public override void HandleSpill(R<Money> spill)
 		{
-			_bank.TakeLoan(_player, Resource.CreateMoney(-spill));
+			_bank.TakeLoan(_player, -spill);
 		}
 	}
 }

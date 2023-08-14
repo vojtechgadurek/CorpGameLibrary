@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Persons
 {
-	public record class ExchangeContract(Resource Resource, Resource Payment, Trader Writer, Trader Holder, int EndRound, Resource FineForNotCompleting)
+	public record class ExchangeContract<TResourceTypeResourceExpected>(R<Oil> Resource, R<Money> Payment, Trader Writer, Trader Holder, int EndRound, R<Money> FineForNotCompleting)
 	{
 		public void Execute(Game game)
 		{

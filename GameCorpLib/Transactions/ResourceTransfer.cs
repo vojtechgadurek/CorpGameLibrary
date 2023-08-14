@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Transactions
 {
-	public record class ResourceTransfer : ITransactionItem
+	public record class ResourceTransfer<TResourceType> : ITransactionItem
 	{
 		public Trader _from;
 		public Trader _to;
-		public Resource Resource { get => _resource; }
-		private Resource _resource;
+		public R<TResourceType> Resource { get => _resource; }
+		private R<TResourceType> _resource;
 		bool _resourceLocked = false;
 		bool _capacityBlocked = false;
 		bool _transferCompleted = false;
@@ -19,13 +19,13 @@ namespace GameCorpLib.Transactions
 		bool _transferSetUpFailed = false;
 		public bool TransferSetupFailed { get { return _transferSetUpFailed; } }
 
-		public ResourceTransfer(Trader from, Trader to, Resource resource)
+		public ResourceTransfer(Trader from, Trader to, R<TResourceType> resource)
 		{
 			_from = from;
 			_to = to;
 			_resource = resource;
 			_resourceLocked = from.Stock.TryLockResource(resource);
-			_capacityBlocked = to.Stock.TryBlockResourceCapacity(resource);
+			_capacityBlocked = to.Stock.TryBlockResourceCapacity(resource.GetCapacity());
 			if (!_resourceLocked || !_capacityBlocked)
 			{
 				ReleaseResources();
@@ -33,12 +33,12 @@ namespace GameCorpLib.Transactions
 			}
 		}
 
-		public bool TryIncreaseTransferSize(Resource resource)
+		public bool TryIncreaseTransferSize(R<TResourceType> resource)
 		{
 			lock (this)
 			{
 				if (resource.Amount < 0) throw new InvalidOperationException("Resource amount must be positive");
-				var resourceTransfer = new ResourceTransfer(_from, _to, resource);
+				var resourceTransfer = new ResourceTransfer<TResourceType>(_from, _to, resource);
 				if (resourceTransfer.TransferSetupFailed)
 				{
 					resourceTransfer.ReleaseResources();
@@ -49,7 +49,7 @@ namespace GameCorpLib.Transactions
 			}
 		}
 
-		public bool TryExecutePartialTransfer(Resource resource)
+		public bool TryExecutePartialTransfer(R<TResourceType> resource)
 		{
 			lock (this)
 			{
@@ -91,7 +91,7 @@ namespace GameCorpLib.Transactions
 					}
 					if (_capacityBlocked)
 					{
-						_to.Stock.UnblockResourceCapacity(_resource);
+						_to.Stock.UnblockResourceCapacity(_resource.GetCapacity());
 					}
 					_transferCompleted = true;
 				}

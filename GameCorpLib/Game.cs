@@ -12,9 +12,9 @@ namespace GameCorpLib
 	public class Game
 	{
 		// Game setup variables
-		public readonly Resource MinePrice = Resource.CreateMoney(1000);
-		public readonly Resource PlayerStartingMoney = Resource.CreateMoney(10000);
-		public readonly Resource MinimalOilPriceOnMarket = Resource.CreateMoney(10);
+		public readonly R<Money> MinePrice = new R<Money>(1000);
+		public readonly R<Money> PlayerStartingMoney = new R<Money>(10000);
+		public readonly R<Money> MinimalOilPriceOnMarket = new R<Money>(10);
 		public readonly double InterestPerRound = 10;
 		public readonly double BaseMoneyForNormalPlayer = 10000;
 		public readonly double BaseStockSize = 10000;
@@ -23,24 +23,24 @@ namespace GameCorpLib
 		public int Round = 0;
 		public Registers Registers = new Registers();
 		public OilFieldProspector OilMineProspector;
-		public SpotMarket SpotMarket;
+		public SpotMarket<Oil> SpotMarket;
 		public Bank Bank;
 
 
 
 		public Game()
 		{
-			SpotMarket = new SpotMarket(MinimalOilPriceOnMarket);
+			SpotMarket = new SpotMarket<Oil>(MinimalOilPriceOnMarket);
 			Bank = new Bank(InterestPerRound);
 			OilMineProspector = new OilFieldProspector(Registers.PropertyRegister, MinePrice);
 			CreateAdminAccount();
 		}
 		void CreateAdminAccount()
 		{
-			var player = new Player("admin", "admin", Registers.PlayersRegister, Bank, BaseStockSize);
+			var player = new Player("admin", "admin", Registers.PlayersRegister, Bank, BaseStockSize, SpotMarket);
 			player.Admin = true;
-			player.Stock.TrySetResourceCapacity(Resource.CreateMoney(100000000));
-			player.Stock.TrySetResource(new Resource(ResourceType.Money, 1000000));
+			player.Stock.TrySetResourceCapacity(new R<Capacity<Money>>(100000000));
+			player.Stock.TrySetResource(new R<Money>(1000000));
 		}
 		public void NewRound()
 		{

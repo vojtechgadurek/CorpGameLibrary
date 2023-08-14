@@ -7,16 +7,18 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Stocks
 {
-	public class HardStuffSilo : Silo
+	public class HardStuffSilo<TResourceType> : Silo<TResourceType>
 	{
-		SpotMarket _spotMarket;
-		public HardStuffSilo(Resource capacity, SpotMarket spotMarket) : base(capacity)
+		SpotMarket<TResourceType> _spotMarket;
+		Player _player;
+		public HardStuffSilo(R<Capacity<TResourceType>> capacity, SpotMarket<TResourceType> spotMarket, Player player) : base(capacity)
 		{
 			_spotMarket = spotMarket;
+			_player = player;
 		}
-		public override void HandleSpill(double spill)
+		public override void HandleSpill(R<TResourceType> spill)
 		{
-			throw new NotImplementedException();
+			_spotMarket.OnMarketPriceLiqudation(spill, _player);
 		}
 	}
 }

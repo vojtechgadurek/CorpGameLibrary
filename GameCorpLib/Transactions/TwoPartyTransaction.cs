@@ -20,9 +20,9 @@ namespace GameCorpLib.Transactions
 			Items = new List<ITransactionItem>();
 		}
 
-		TwoPartyTransaction AddTransactionItem(Resource resource, Trader from, Trader to)
+		TwoPartyTransaction AddTransactionItem<TResourceType>(R<TResourceType> resource, Trader from, Trader to)
 		{
-			var resourceTransfer = new ResourceTransfer(from, to, resource);
+			var resourceTransfer = new ResourceTransfer<TResourceType>(from, to, resource);
 			if (resourceTransfer.TransferSetupFailed)
 			{
 				_isOk = false;
@@ -43,7 +43,7 @@ namespace GameCorpLib.Transactions
 				to = _buyer;
 			}
 		}
-		public TwoPartyTransaction AddTransactionItem(Resource resource, TransactionDirection transactionDirection)
+		public TwoPartyTransaction AddTransactionItem<TResourceType>(R<TResourceType> resource, TransactionDirection transactionDirection)
 		{
 			Trader from;
 			Trader to;
