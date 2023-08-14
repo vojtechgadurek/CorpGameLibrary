@@ -19,6 +19,12 @@ namespace GameCorpLib.Stocks
 		/// </summary>
 		private LimitedDouble limitedDouble;
 
+		//Implement
+		private LockedResourceManager<TResourceType> lockedResourceManager = new LockedResourceManager<TResourceType>();
+		Action<R<TResourceType>> releaseResource;
+		Action<R<TResourceType>> takeResource;
+
+
 		R<Capacity<TResourceType>> _capacity;
 		R<TResourceType> _spill = new R<TResourceType>(0); //This is quick fix for over and underfilling the silo
 														   //Potencional solution is force market sale or buy or forced loan
@@ -26,6 +32,8 @@ namespace GameCorpLib.Stocks
 		{
 			_capacity = capacity;
 			limitedDouble = new LimitedDouble(0, capacity.Amount, 0);
+			releaseResource = (R<TResourceType> resourceToRelease) => { UnlockResource(resourceToRelease); };
+			takeResource = (R<TResourceType> resourceToTake) => { LockResource(resourceToTake); };
 		}
 		/// <summary>
 		/// Shows how much resources are in the silo, locked and unlocked combined
@@ -172,10 +180,10 @@ namespace GameCorpLib.Stocks
 			_capacity = capacity;
 			return limitedDouble.TrySetNewUpperLimit(capacity.Amount);
 		}
+
 		public virtual void HandleSpill(R<TResourceType> spill)
 		{
 			_spill += spill;
 		}
-
 	}
 }
