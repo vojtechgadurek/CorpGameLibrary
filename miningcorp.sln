@@ -3,11 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "miningcorp", "miningcorp\miningcorp.csproj", "{251C0050-DB1A-4E92-9A94-BA24CF6AA328}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "testsMiningCorp", "testsMiningCorp\testsMiningCorp.csproj", "{4E6ACA8F-2A33-405C-8C0C-4DB185A110CC}"
-EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "fsharpprojectutils", "fsharpprojectutils\fsharpprojectutils.fsproj", "{9D8FCFBC-D969-4320-B04D-674ED7A8A3E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameCoreLib", "GameCoreLib\GameCoreLib.csproj", "{251C0050-DB1A-4E92-9A94-BA24CF6AA328}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
