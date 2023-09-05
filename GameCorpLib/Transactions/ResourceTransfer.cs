@@ -99,4 +99,42 @@ namespace GameCorpLib.Transactions
 		}
 	}
 
+	public class ResourceTransferViaLock<TResourceType>
+	{
+		public Trader _from;
+		public Trader _to;
+		private Locked<R<TResourceType>>? _lockedResource;
+		private Blocked<TResourceType>? _blockedCapacity;
+		public ResourceTransferViaLock(Trader from, Trader to, R<TResourceType> resource)
+		{
+			_from = from;
+			_to = to;
+			var x = from.Stock.TryGetLockOnResource(resource);
+			_lockedResource = from.Stock.TryGetLockOnResource(resource);
+			_blockedCapacity = to.Stock.TryGetBlockOnResourceCapacity(resource.GetCapacity());
+		}
+
+
+		public bool TryExecuteTransfer()
+		{
+			if (_lockedResource != null && _blockedCapacity != null && !_lockedResource.Disposed && !_blockedCapacity.Disposed)
+			{
+				_blockedCapacity.Use(_lockedResource.Get());
+				return true;
+			}
+			else
+			{
+				ReleaseResource();
+				return false;
+			}
+		}
+
+		public void ReleaseResource()
+		{
+			_lockedResource?.Release();
+			_blockedCapacity?.Release();
+		}
+
+	}
+
 }

@@ -1,4 +1,5 @@
 ﻿using GameCorpLib.Tradables;
+using GameCorpLib.Transactions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -35,6 +36,9 @@ namespace GameCorpLib.Stocks
 
 		public abstract void ForceIncreaseResources<TResourceType>(R<TResourceType> resource);
 		public abstract bool TrySetResourceCapacity<TResourceType>(R<Capacity<TResourceType>> resource);
+
+		public abstract Locked<R<TResourceType>> TryGetLockOnResource<TResourceType>(R<TResourceType> amount);
+		public abstract Blocked<TResourceType> TryGetBlockOnResourceCapacity<TResourceType>(R<Capacity<TResourceType>> amount);
 
 	}
 }

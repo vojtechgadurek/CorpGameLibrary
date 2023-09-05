@@ -10,14 +10,16 @@ namespace GameCorpLib.Stocks
 	{
 		Bank _bank;
 		Player _player;
-		public CashSilo(Bank bank, Player player) : base(new R<Capacity<Money>>(double.PositiveInfinity))
+		public CashSilo(Bank bank, Player player) : base(new SiloConfiguration<Money>().SetInfiniteCapacity())
+		{
+		}
 		{
 			_bank = bank;
 			_player = player;
 		}
-		public override void HandleSpill(R<Money> spill)
-		{
-			_bank.TakeLoan(_player, -spill);
-		}
+	public override void HandleSpill(R<Money> spill)
+	{
+		_bank.TakeLoan(_player, -spill);
 	}
+}
 }

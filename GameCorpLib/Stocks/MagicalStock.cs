@@ -9,6 +9,10 @@ namespace GameCorpLib.Stocks
 {
 	public class MagicalStock : Stock
 	{
+		public MagicalStock() { 
+		}
+
+
 		public override R<TResourceType> GetResource<TResourceType>()
 		{
 			return new R<TResourceType>(double.PositiveInfinity);
@@ -49,6 +53,16 @@ namespace GameCorpLib.Stocks
 		public override bool TrySetResourceCapacity<TResourceType>(R<Capacity<TResourceType>> resource)
 		{
 			return true;
+		}
+
+		public override Locked<R<TResourceType>> TryGetLockOnResource<TResourceType>(R<TResourceType> amount)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override Blocked<TResourceType> TryGetBlockOnResourceCapacity<TResourceType>(R<Capacity<TResourceType>> amount)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

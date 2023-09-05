@@ -75,5 +75,15 @@ namespace GameCorpLib.Stocks
 		{
 			return GetSilo<TResourceType>().TrySetCapacity(resource);
 		}
+
+		public override Locked<R<TResourceType>> TryGetLockOnResource<TResourceType>(R<TResourceType> amount)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override Blocked<TResourceType> TryGetBlockOnResourceCapacity<TResourceType>(R<Capacity<TResourceType>> amount)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

@@ -11,13 +11,13 @@ namespace GameCorpLib.Transactions
 	public class HoldedResourceManager<TResourceType>
 	{
 		protected HashSet<Holded<TResourceType>> _holdedResource = new HashSet<Holded<TResourceType>>();
-		private Action<R<TResourceType>> releaseDelegate;
-		public HoldedResourceManager(Action<R<TResourceType>> releaseDelegate)
+		private Action<TResourceType> releaseDelegate;
+		public HoldedResourceManager(Action<TResourceType> releaseDelegate)
 		{
 			this.releaseDelegate = releaseDelegate;
 		}
 
-		public void Release(Holded<TResourceType> locked, R<TResourceType> lockedAmount)
+		public void Release(Holded<TResourceType> locked, TResourceType lockedAmount)
 		{
 			lock (this)
 			{
@@ -30,19 +30,19 @@ namespace GameCorpLib.Transactions
 	}
 	public class LockedResourceManager<TResourceType> : HoldedResourceManager<TResourceType>
 	{
-		private Action<R<TResourceType>> takeDelegate;
+		private Action<TResourceType> takeDelegate;
 
-		public LockedResourceManager(Action<R<TResourceType>> releaseDelegate, Action<R<TResourceType>> takeDelegate) : base(releaseDelegate)
+		public LockedResourceManager(Action<TResourceType> releaseDelegate, Action<TResourceType> takeDelegate) : base(releaseDelegate)
 		{
 			this.takeDelegate = takeDelegate;
 		}
-		public Locked<TResourceType> CreateLocked(R<TResourceType> amount)
+		public Locked<TResourceType> CreateLocked(TResourceType amount)
 		{
 			var locked = new Locked<TResourceType>(amount, this);
 			_holdedResource.Add(locked);
 			return locked;
 		}
-		public void Take(Locked<TResourceType> locked, R<TResourceType> lockedAmount)
+		public void Take(Locked<TResourceType> locked, TResourceType lockedAmount)
 		{
 			lock (this)
 			{
@@ -53,7 +53,7 @@ namespace GameCorpLib.Transactions
 		}
 	}
 
-	public class BlockedResourceManager<TBlocked> : HoldedResourceManager<TBlocked>
+	public class BlockedResourceManager<TBlocked> : HoldedResourceManager<R<TBlocked>>
 	{
 		private Action<R<TBlocked>> useDelegate;
 		public BlockedResourceManager(Action<R<TBlocked>> releaseDelegate, Action<R<TBlocked>> useDelegate) : base(releaseDelegate)
@@ -84,10 +84,10 @@ namespace GameCorpLib.Transactions
 	{
 		protected HoldedResourceManager<TResourceType> _resourceOwner;
 
-		protected private R<TResourceType> _amount;
+		protected private TResourceType _amount;
 		protected bool _disposed = false;
 		public bool Disposed => _disposed;
-		public Holded(R<TResourceType> amount)
+		public Holded(TResourceType amount)
 		{
 			_amount = amount;
 		}
@@ -103,22 +103,22 @@ namespace GameCorpLib.Transactions
 		}
 	}
 
-	public class Blocked<TResourceType> : Holded<TResourceType>
+	public class Blocked<TResourceType> : Holded<R<TResourceType>>
 	{
+		public R<TResourceType> Amount => _amount;
 		public Blocked(R<TResourceType> amount, BlockedResourceManager<TResourceType> resourceowner) : base(amount)
 		{
 			_resourceOwner = resourceowner;
 		}
 
-		public bool Use(R<TResourceType> blockageToUse)
+		public void Use(R<TResourceType> blockageToUse)
 		{
 			lock (this)
 			{
-				if (_disposed) return false;
-				if (blockageToUse > _amount) return false;
+				if (_disposed) throw new InvalidOperationException("Blocked resource was already disposed of");
+				if (blockageToUse > _amount) throw new InvalidOperationException($"{blockageToUse} is to big for space of {_amount}");
 				_disposed = true;
 				((BlockedResourceManager<TResourceType>)_resourceOwner).Use(this, blockageToUse);
-				return true;
 			}
 		}
 
@@ -126,16 +126,16 @@ namespace GameCorpLib.Transactions
 	public class Locked<TResourceType> : Holded<TResourceType>
 	{
 
-		public Locked(R<TResourceType> amount, LockedResourceManager<TResourceType> resourceOwner) : base(amount)
+		public Locked(TResourceType amount, LockedResourceManager<TResourceType> resourceOwner) : base(amount)
 		{
 			_resourceOwner = resourceOwner;
 		}
 
-		public R<TResourceType>? Get()
+		public TResourceType Get()
 		{
 			lock (this)
 			{
-				if (_disposed) return null;
+				if (_disposed) throw new InvalidOperationException("Locked reource was already disposed of");
 				_disposed = true;
 				((LockedResourceManager<TResourceType>)_resourceOwner).Take(this, _amount);
 				return _amount;
