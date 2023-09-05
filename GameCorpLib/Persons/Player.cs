@@ -17,7 +17,7 @@ namespace GameCorpLib
 		IDictionary<int, Company> companiesControled = new Dictionary<int, Company>();
 		public readonly Trader Trader;
 		public Stock Stock => Trader.Stock;
-		public Player(string name, string password, PlayersRegister playersRegister, Bank bank, double hardStockSize, SpotMarket<Oil> spotMarket)
+		public Player(string name, string password, PlayersRegister playersRegister, Bank bank, double hardStockSize, SpotMarketInResource<Oil> spotMarket)
 		{
 			Name = name;
 			Admin = false;

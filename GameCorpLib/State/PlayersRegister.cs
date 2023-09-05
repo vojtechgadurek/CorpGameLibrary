@@ -15,7 +15,7 @@ namespace GameCorpLib.State
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		public Player? TryCreateNewPlayer(string name, string password, Bank bank, double hardStockCapacity, SpotMarket<Oil> spotMarket)
+		public Player? TryCreateNewPlayer(string name, string password, Bank bank, double hardStockCapacity, SpotMarketInResource<Oil> spotMarket)
 		{
 			lock (_Players)
 			{

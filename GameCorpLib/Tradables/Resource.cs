@@ -9,6 +9,42 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GameCorpLib.Tradables
 {
+	public enum TypeOfResourceType
+	{
+		HardResource,
+		Cash
+	}
+	public class ResourceAttribute : System.Attribute
+	{
+		public TypeOfResourceType TypeOfResourceType { get; private set; }
+		public string Name { get; private set; }
+		public Type TheType { get; private set; } //I do not have any idea how to name it normaly
+		public ResourceAttribute(string name, TypeOfResourceType typeOfResourceType, Type type)
+		{
+			Name = name;
+			TypeOfResourceType = typeOfResourceType;
+			TheType = type;
+
+
+		}
+	}
+	static class Resources
+	{
+		public static IList<ResourceAttribute> Resources = new List<ResourceAttribute>();
+		static Resources()
+		{
+			foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+			{
+				var resourceAttribute = type.GetCustomAttribute<ResourceAttribute>();
+				if (resourceAttribute != null)
+				{
+					Resources.Add(resourceAttribute);
+				}
+			}
+		}
+
+	}
+	[Resource("Money", TypeOfResourceType.Cash, typeof(Money))]
 	public struct Money
 	{
 		public Money(double amount)
@@ -19,6 +55,7 @@ namespace GameCorpLib.Tradables
 		public static implicit operator Money(R<Money> d) => new Money(d.Amount);
 		public static implicit operator R<Money>(Money d) => new R<Money>(d.Amount);
 	}
+	[Resource("Oil", TypeOfResourceType.HardResource, typeof(Oil))]
 	public struct Oil
 	{
 

@@ -1,56 +1,76 @@
-﻿using GameCorpLib.Tradables;
-using GameCorpLib.Transactions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Dynamic;
 using System.Linq;
-using System.Numerics;
-using System.Security.Cryptography.X509Certificates;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace GameCorpLib.Stocks
 {
-	//Stock by asi chtělo přepsat
-
-	public abstract class Stock
+	public static class StockFactory
 	{
-		public abstract R<TResourceType> GetResource<TResourceType>();
+		public Stock CreateNormalPlayerStock(Player player, double BaseHardResourceCapacity, Bank bank, SpotMarket spotMarket)
+		{
+			IDictionary<Type, object> _silos = new Dictionary<Type, object>();
+			foreach (var resource in Resources.Resources)
+			{
+				_silos.Add(resource, new Silo(resource, BaseHardResourceCapacity, bank, player, spotMarket));
+			}
 
-		public abstract bool TrySetResource<TResourceType>(R<TResourceType> resource);
+		}
+	}
+	public class Stock
+	{
+		protected IDictionary<Type, object> _silos;
 
-		public abstract bool TryAddResource<TResourceType>(R<TResourceType> resource);
+		public Stock(IDictionary<Type, object> silos)
+		{
+			this._silos = silos;
+		}
 
-		public abstract bool TryLockResource<TResourceType>(R<TResourceType> resource);
+		private Silo<TResourceType> GetSilo<TResourceType>()
+		{
+			var silo = _silos[typeof(TResourceType)];
+			if (silo == null)
+			{
+				throw new InvalidOperationException(
+				"Silo for resource type " + typeof(TResourceType).Name + " not found."
+				);
+			}
+			return (Silo<TResourceType>)silo;
+		}
 
-		public abstract void UnlockResource<TResourceType>(R<TResourceType> resource);
+		public R<TResourceType> GetResource<TResourceType>()
+		{
+			return GetSilo<TResourceType>().Amount;
 
-		public abstract bool TryBlockResourceCapacity<TResourceType>(R<Capacity<TResourceType>> resource);
+		}
+		public bool TrySetResource<TResourceType>(R<TResourceType> resource)
+		{
+			return GetSilo<TResourceType>().TrySetAmount(resource);
+		}
+		public bool TryAddResource<TResourceType>(R<TResourceType> resource)
+		{
+			return GetSilo<TResourceType>().TryIncreaseAmount(resource);
+		}
+		public void ForceIncreaseResources<TResourceType>(R<TResourceType> resource)
+		{
+			GetSilo<TResourceType>().ForceIncreaseResource(resource);
+		}
+		public bool TrySetResourceCapacity<TResourceType>(R<Capacity<TResourceType>> resource)
+		{
+			return GetSilo<TResourceType>().TrySetCapacity(resource);
+		}
 
-		public abstract void UnblockResourceCapacity<TResourceType>(R<Capacity<TResourceType>> resource);
+		public Locked<R<TResourceType>>? TryGetLockOnResource<TResourceType>(R<TResourceType> amount)
+		{
+			return GetSilo<TResourceType>().TryGetLockOnResource(amount);
+		}
 
-		public abstract void FillBlockedResourceCapacity<TResourceType>(R<TResourceType> resource);
-
-		public abstract void RemoveLockedResource<TResourceType>(R<TResourceType> resource);
-
-		public abstract void ForceIncreaseResources<TResourceType>(R<TResourceType> resource);
-		public abstract bool TrySetResourceCapacity<TResourceType>(R<Capacity<TResourceType>> resource);
-
-		public abstract Locked<R<TResourceType>> TryGetLockOnResource<TResourceType>(R<TResourceType> amount);
-		public abstract Blocked<TResourceType> TryGetBlockOnResourceCapacity<TResourceType>(R<Capacity<TResourceType>> amount);
-
+		public Blocked<TResourceType>? TryGetBlockOnResourceCapacity<TResourceType>(R<TResourceType> amount)
+		{
+			return GetSilo<TResourceType>().TryGetBlockOnCapacity(amount);
+		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-

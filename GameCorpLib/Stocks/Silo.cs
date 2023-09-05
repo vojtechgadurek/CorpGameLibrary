@@ -1,5 +1,39 @@
-﻿namespace GameCorpLib.Stocks
+﻿using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+
+namespace GameCorpLib.Stocks
 {
+
+
+	public static class SiloFactory
+	{
+		public static Silo<Money> CreateCashSilo(Player player, Bank bank)
+		{
+			BankMoneySpillHandler bankMoneySpillHandler = new BankMoneySpillHandler(bank, player);
+			return new SiloConfiguration<Money>()
+				.SetInfiniteCapacity()
+				.SetSpillHandler(bankMoneySpillHandler)
+				.SetUnderfillHandler(bankMoneySpillHandler)
+				.CreateSiloInstance();
+		}
+
+		public static Silo<TResourceType> CreateHardResourceSilo<TResourceType>(R<Capacity<TResourceType>> capacity, Player player, SpotMarketInResource<TResourceType> spotMarket)
+		{
+			ResourceSpillHandler<TResourceType> resourceSpillHandler = new ResourceSpillHandler<TResourceType>(player, spotMarket);
+			return new SiloConfiguration<TResourceType>()
+				.SetCapacity(capacity)
+				.SetSpillHandler(resourceSpillHandler)
+				.SetUnderfillHandler(resourceSpillHandler)
+				.CreateSiloInstance();
+		}
+
+		public static Silo<TResourceType> CreateNoLimitsSilo<TResourceType>()
+		{
+			return new SiloConfiguration<TResourceType>()
+				.SetInfiniteCapacity()
+				.CreateSiloInstance();
+		}
+	}
 	public interface ISpillHandler<TResourceType>
 	{
 		void HandleSpill(R<TResourceType> spillAmount);
@@ -10,21 +44,58 @@
 		void HandleUnderfill(R<TResourceType> underfillAmount);
 	}
 
-	public class BasicSpillHandler<TResourceType> : ISpillHandler<TResourceType>
+	public class BasicSpillHandler<TResourceType> : ISpillHandler<TResourceType>, IUnderfillHandler<TResourceType>
 	{
 		R<TResourceType> spillAmount;
-		void ISpillHandler<TResourceType>.HandleSpill(R<TResourceType> spillAmount)
+		public void HandleSpill(R<TResourceType> spillAmount)
 		{
 			this.spillAmount += spillAmount;
 		}
+		public void HandleUnderfill(R<TResourceType> underfillAmount)
+		{
+			this.spillAmount -= underfillAmount;
+		}
+	}
+	public class BankMoneySpillHandler : ISpillHandler<Money>, IUnderfillHandler<Money>
+	{
+
+		Bank _bank;
+		Player _player;
+		public BankMoneySpillHandler(Bank bank, Player player)
+		{
+			_bank = bank;
+			_player = player;
+		}
+
+		public void HandleSpill(R<Money> spillAmount)
+		{
+			//Should never happen
+			throw new NotImplementedException();
+		}
+		public void HandleUnderfill(R<Money> underfillAmount)
+		{
+			_bank.TakeLoan(_player, underfillAmount);
+		}
 	}
 
-	public class BasicUnderfillHandler<TResourceType> : IUnderfillHandler<TResourceType>
+	public class ResourceSpillHandler<TResourceType> : ISpillHandler<TResourceType>, IUnderfillHandler<TResourceType>
 	{
-		R<TResourceType> underfillAmount;
-		void IUnderfillHandler<TResourceType>.HandleUnderfill(R<TResourceType> underfillAmount)
+		SpotMarketInResource<TResourceType> _spotMarket;
+		Player _player;
+
+		public ResourceSpillHandler(Player player, SpotMarketInResource<TResourceType> spotMarket)
 		{
-			this.underfillAmount += underfillAmount;
+			_spotMarket = spotMarket;
+			_player = player;
+		}
+		public void HandleSpill(R<TResourceType> spillAmount)
+		{
+			_spotMarket.OnMarketPriceLiqudation(spillAmount, _player);
+		}
+		public void HandleUnderfill(R<TResourceType> underfillAmount)
+		{
+			//Should never happen
+			throw new NotImplementedException();
 		}
 	}
 
@@ -82,6 +153,11 @@
 		public SiloConfiguration<TResourceType> SetNoLimits()
 		{
 			return SetInfiniteCapacity().SetNoFloarCapacity();
+		}
+
+		public Silo<TResourceType> CreateSiloInstance()
+		{
+			return new Silo<TResourceType>(this);
 		}
 	}
 
@@ -145,7 +221,7 @@
 			blockedResourceManager = new BlockedResourceManager<TResourceType>(releaseBlockedCapacity, consumeBlockedCapacity);
 
 			this.spillHandler = siloConfiguration.SpillHandler ?? new BasicSpillHandler<TResourceType>();
-			this.underfillHandler = siloConfiguration.UnderfillHandler ?? new BasicUnderfillHandler<TResourceType>();
+			this.underfillHandler = siloConfiguration.UnderfillHandler ?? new BasicSpillHandler<TResourceType>();
 		}
 
 		public void SetFillPolicy(bool safeFill)
@@ -300,9 +376,12 @@
 		}
 		public bool TrySetCapacity(R<Capacity<TResourceType>> capacity)
 		{
-			bool ansver = _limitedDouble.TrySetNewUpperLimit(capacity.Amount);
-			if (ansver) _capacity = capacity;
-			return ansver;
+			lock (this)
+			{
+				bool ansver = _limitedDouble.TrySetNewUpperLimit(capacity.Amount);
+				if (ansver) _capacity = capacity;
+				return ansver;
+			}
 		}
 
 		public Locked<R<TResourceType>>? TryGetLockOnResource(R<TResourceType> resource)
