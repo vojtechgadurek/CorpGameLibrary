@@ -32,7 +32,7 @@ namespace GameCorpLib.Transactions
 		public bool TryExecuteProportional(double proportion)
 		{
 			if (_transactionCompleted || _resourcesReleased) return false;
-			if (proportion > 1) return false;
+			if (proportion > 1 || proportion < 0) return false;
 			lock (this)
 			{
 				bool ansver = true;

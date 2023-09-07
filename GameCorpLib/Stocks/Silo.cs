@@ -5,162 +5,6 @@ using System.Security.AccessControl;
 namespace GameCorpLib.Stocks
 {
 
-
-	public static class SiloFactory
-	{
-		public static Silo<Money> CreateCashSilo(Player player, Bank bank)
-		{
-			BankMoneySpillHandler bankMoneySpillHandler = new BankMoneySpillHandler(bank, player);
-			return new SiloConfiguration<Money>()
-				.SetInfiniteCapacity()
-				.SetSpillHandler(bankMoneySpillHandler)
-				.SetUnderfillHandler(bankMoneySpillHandler)
-				.CreateSiloInstance();
-		}
-
-		public static Silo<TResourceType> CreateHardResourceSilo<TResourceType>(double capacity, Player player, SpotMarket spotMarket)
-		{
-			ResourceSpillHandler<TResourceType> resourceSpillHandler = new ResourceSpillHandler<TResourceType>(player, spotMarket.GetSpotMarket<TResourceType>());
-			return new SiloConfiguration<TResourceType>()
-				.SetCapacity(capacity.Create<TResourceType>().GetCapacity())
-				.SetSpillHandler(resourceSpillHandler)
-				.SetUnderfillHandler(resourceSpillHandler)
-				.CreateSiloInstance();
-		}
-
-		public static Silo<TResourceType> CreateNoLimitsSilo<TResourceType>()
-		{
-			return new SiloConfiguration<TResourceType>()
-				.SetInfiniteCapacity()
-				.CreateSiloInstance();
-		}
-	}
-	public interface ISpillHandler<TResourceType>
-	{
-		void HandleSpill(R<TResourceType> spillAmount);
-	}
-
-	public interface IUnderfillHandler<TResourceType>
-	{
-		void HandleUnderfill(R<TResourceType> underfillAmount);
-	}
-
-	public class BasicSpillHandler<TResourceType> : ISpillHandler<TResourceType>, IUnderfillHandler<TResourceType>
-	{
-		R<TResourceType> spillAmount;
-		public void HandleSpill(R<TResourceType> spillAmount)
-		{
-			this.spillAmount += spillAmount;
-		}
-		public void HandleUnderfill(R<TResourceType> underfillAmount)
-		{
-			this.spillAmount -= underfillAmount;
-		}
-	}
-	public class BankMoneySpillHandler : ISpillHandler<Money>, IUnderfillHandler<Money>
-	{
-
-		Bank _bank;
-		Player _player;
-		public BankMoneySpillHandler(Bank bank, Player player)
-		{
-			_bank = bank;
-			_player = player;
-		}
-
-		public void HandleSpill(R<Money> spillAmount)
-		{
-			//Should never happen
-			throw new NotImplementedException();
-		}
-		public void HandleUnderfill(R<Money> underfillAmount)
-		{
-			_bank.TakeLoan(_player, underfillAmount);
-		}
-	}
-
-	public class ResourceSpillHandler<TResourceType> : ISpillHandler<TResourceType>, IUnderfillHandler<TResourceType>
-	{
-		SpotMarketInResource<TResourceType> _spotMarket;
-		Player _player;
-
-		public ResourceSpillHandler(Player player, SpotMarketInResource<TResourceType> spotMarket)
-		{
-			_spotMarket = spotMarket;
-			_player = player;
-		}
-		public void HandleSpill(R<TResourceType> spillAmount)
-		{
-			_spotMarket.OnMarketPriceLiqudation(spillAmount, _player);
-		}
-		public void HandleUnderfill(R<TResourceType> underfillAmount)
-		{
-			//Should never happen
-			throw new NotImplementedException();
-		}
-	}
-
-	public class SiloConfiguration<TResourceType>
-	{
-		public R<Capacity<TResourceType>>? Capacity { get; private set; } = null;
-		public R<TResourceType>? Resource { get; private set; } = null;
-		public ISpillHandler<TResourceType>? SpillHandler { get; private set; } = null;
-		public IUnderfillHandler<TResourceType>? UnderfillHandler { get; private set; } = null;
-		public R<Capacity<TResourceType>>? FloorCapacity { get; private set; } = null;
-
-		public SiloConfiguration<TResourceType> SetCapacity(R<Capacity<TResourceType>> capacity)
-		{
-			Capacity = capacity;
-			return this;
-		}
-		public SiloConfiguration<TResourceType> SetStartingResource(R<TResourceType> resource)
-		{
-			Resource = resource;
-			return this;
-		}
-
-		public SiloConfiguration<TResourceType> SetSpillHandler(ISpillHandler<TResourceType> spillHandler)
-		{
-			SpillHandler = spillHandler;
-			return this;
-		}
-		public SiloConfiguration<TResourceType> SetUnderfillHandler(IUnderfillHandler<TResourceType> underfillHandler)
-		{
-			UnderfillHandler = underfillHandler;
-			return this;
-		}
-
-
-
-		SiloConfiguration<TResourceType> SetFloorCapacity(R<Capacity<TResourceType>> floorCapacity)
-		{
-			//It is important to remember setting floor capacity to other value then 0 will not reflect in change of capacity
-			//Floar -1, capacity 1, means capacity will still be 1
-			FloorCapacity = floorCapacity;
-			return this;
-		}
-
-		public SiloConfiguration<TResourceType> SetInfiniteCapacity()
-		{
-			return SetCapacity(new R<Capacity<TResourceType>>(double.PositiveInfinity));
-		}
-
-		public SiloConfiguration<TResourceType> SetNoFloarCapacity()
-		{
-			SetFloorCapacity(new R<Capacity<TResourceType>>(double.NegativeInfinity));
-			return this;
-		}
-
-		public SiloConfiguration<TResourceType> SetNoLimits()
-		{
-			return SetInfiniteCapacity().SetNoFloarCapacity();
-		}
-
-		public Silo<TResourceType> CreateSiloInstance()
-		{
-			return new Silo<TResourceType>(this);
-		}
-	}
 	public abstract class Silo { }
 	public class Silo<TResourceType> : Silo
 	{
@@ -237,23 +81,23 @@ namespace GameCorpLib.Stocks
 			get => new R<TResourceType>(_limitedDouble.Value);
 		}
 
-		public double BlockedCapacity
+		public R<Capacity<TResourceType>> BlockedCapacity
 		{
-			get => _capacity.Amount - _limitedDouble.UpperLimit;
+			get => (_capacity.Amount - _limitedDouble.UpperLimit).Create<TResourceType>().ToCapacity();
 		}
 		/// <summary>
 		/// Shows how much resources are locked and are not available for general use 
 		/// </summary>
-		public double LockedResource
+		public R<TResourceType> LockedResource
 		{
-			get => _limitedDouble.LowerLimit;
+			get => (_limitedDouble.LowerLimit).Create<TResourceType>();
 		}
 		/// <summary>
 		/// Show capacity not blocked or not used by reasources 
 		/// </summary>
-		public double FreeCapacity
+		public R<Capacity<TResourceType>> FreeCapacity
 		{
-			get => _limitedDouble.UpperLimit - _limitedDouble.Value;
+			get => (_limitedDouble.UpperLimit - _limitedDouble.Value).Create<TResourceType>().ToCapacity();
 		}
 
 		/// <summary>

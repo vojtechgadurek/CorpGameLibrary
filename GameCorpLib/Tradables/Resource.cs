@@ -161,7 +161,7 @@ namespace GameCorpLib.Tradables
 			return Amount.ToString();
 		}
 
-		public R<Capacity<TResource>> GetCapacity()
+		public R<Capacity<TResource>> ToCapacity()
 		{
 			return new R<Capacity<TResource>>(Amount);
 		}

@@ -23,7 +23,8 @@ namespace GameCorpLib.Transactions
 			_from = from;
 			_to = to;
 			_lockedResource = from.Stock.TryGetLockOnResource(resource);
-			_blockedCapacity = to.Stock.TryGetBlockOnResourceCapacity(resource.GetCapacity());
+			_blockedCapacity = to.Stock.TryGetBlockOnResourceCapacity(resource.ToCapacity());
+			AmountToTransfer = resource;
 			if (!CheckSetupIsOk()) ReleaseResources();
 		}
 

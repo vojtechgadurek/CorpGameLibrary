@@ -46,13 +46,13 @@ namespace GameCorpLib.Stocks
 			IDictionary<Type, object> _silos = new Dictionary<Type, object>();
 			foreach (var resource in Resources.ResourcesList)
 			{
+				var type = typeof(SiloFactory);
+				var method = type.GetMethod("CreateNoLimitsSilo");
+				var GenericMethod = method.MakeGenericMethod(resource.TheType);
+				var silo = GenericMethod.Invoke(null, new object[] { });
 				_silos.Add(
-					resource.TheType,
-					typeof(SiloFactory)
-					.GetMethod("CreateNoLimitSilo", new Type[] { typeof(Type) })
-					.MakeGenericMethod(resource.TheType)
-					.Invoke(null, new object[] { })
-					);
+					resource.TheType, silo)
+					;
 			}
 			return new Stock(_silos);
 		}

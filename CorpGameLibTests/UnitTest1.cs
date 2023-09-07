@@ -1,6 +1,7 @@
 namespace CorpGameLibTests
 {
 	using System.ComponentModel;
+	using System.Drawing;
 	using System.Numerics;
 	using System.Security.Cryptography.X509Certificates;
 	using GameCorpLib;
@@ -9,6 +10,7 @@ namespace CorpGameLibTests
 	using GameCorpLib.Stocks;
 	using GameCorpLib.Tradables;
 	using GameCorpLib.Transactions;
+	using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.Resources;
 
 	namespace MinnigCorpTests
 	{
@@ -48,7 +50,7 @@ namespace CorpGameLibTests
 			[InlineData(10000, 10000, true)]
 			public void TestSiloAdd(double capacity, double resourceAmountToAdd, bool ansver)
 			{
-				var confg = new SiloConfiguration<Oil>().SetCapacity(capacity.Create<Oil>().GetCapacity());
+				var confg = new SiloConfiguration<Oil>().SetCapacity(capacity.Create<Oil>().ToCapacity());
 				Silo<Oil> silo = new Silo<Oil>(confg);
 				bool result = silo.TryIncreaseAmount(resourceAmountToAdd.Create<Oil>());
 				Assert.Equal(ansver, result);
@@ -62,19 +64,68 @@ namespace CorpGameLibTests
 
 			public void TestSiloBlock(double capacity, double capacityToBlock, bool ansver)
 			{
-				var confg = new SiloConfiguration<Oil>().SetCapacity(capacity.Create<Oil>().GetCapacity());
+				var confg = new SiloConfiguration<Oil>().SetCapacity(capacity.Create<Oil>().ToCapacity());
 				Silo<Oil> silo = new Silo<Oil>(confg);
-				/*bool result = silo.TryBlockCapacity(capacityToBlock.Create<Capacity<Oil>>());
-				Assert.Equal(ansver, result);
-				if (result) Assert.Equal(capacityToBlock, silo.BlockedCapacity);
-				*/
+				var blocked = silo.TryGetBlockOnCapacity(capacityToBlock.Create<Oil>().ToCapacity());
+				if (ansver)
+				{
+					Assert.NotNull(blocked);
+					Assert.Equal(capacityToBlock.Create<Oil>().ToCapacity(), silo.BlockedCapacity);
+				}
+				else
+				{
+					Assert.Null(blocked);
+					Assert.Equal(0.Create<Capacity<Oil>>(), silo.BlockedCapacity);
+				}
 			}
 
 			[Theory]
-			[InlineData(10000, 1000, 10)]
-
-			public void TestUseBlockedCapacity(double capacity, double capacityToBlock, double capacityToFill)
+			[InlineData(10000, 1000, true)]
+			[InlineData(10000, 100000, false)]
+			[InlineData(10000, 10000, true)]
+			public void TestSiloLock(double resources, double resourcesToLock, bool ansver)
 			{
+				var confg = new SiloConfiguration<Oil>()
+					.SetCapacity(resources.Create<Oil>().ToCapacity());
+				Silo<Oil> silo = new Silo<Oil>(confg);
+				silo.TryIncreaseAmount(resources.Create<Oil>());
+
+				var locked = silo.TryGetLockOnResource(resourcesToLock.Create<Oil>());
+				if (ansver)
+				{
+					Assert.NotNull(locked);
+					Assert.Equal(resourcesToLock.Create<Oil>(), silo.LockedResource);
+				}
+				else
+				{
+					Assert.Null(locked);
+					Assert.Equal(0.Create<Oil>(), silo.LockedResource);
+				}
+			}
+			[Fact]
+			public void TestSiloComplex()
+			{
+				//Constants
+				const double resources = 10000;
+
+				var confg = new SiloConfiguration<Oil>()
+					.SetCapacity(resources.Create<Oil>().ToCapacity());
+				Silo<Oil> silo = new Silo<Oil>(confg);
+
+
+				//First should fail
+				const double sizeBlockedI = 1000;
+				var blockedI = silo.TryGetBlockOnCapacity(sizeBlockedI.Create<Oil>().ToCapacity());
+				Assert.NotNull(blockedI);
+
+				//Second should succeed
+				const double sizeBlockedII = resources * 10;
+				var blockedII = silo.TryGetBlockOnCapacity(sizeBlockedII.Create<Oil>().ToCapacity());
+				Assert.Null(blockedII);
+
+				blockedI.Use(100.Create<Oil>());
+				Assert.Equal(100.Create<Oil>(), silo.Amount);
+				Assert.Equal(900.Create<Oil>().ToCapacity(), silo.BlockedCapacity);
 
 			}
 		}
@@ -147,7 +198,7 @@ namespace CorpGameLibTests
 			}
 		}
 
-		public class TestTransasctions
+		public class TestTransactions
 		{
 			[Fact]
 			public void TestPartialTransactionSimple1()
