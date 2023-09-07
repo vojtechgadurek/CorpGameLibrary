@@ -181,8 +181,6 @@ namespace GameCorpLib.Stocks
 		{
 			if (resource.Amount < 0) throw new InvalidOperationException($"resource {resource.Amount} may not be negative");
 			_limitedDouble.TryIncreaseLowerLimit(-resource.Amount);
-			//Lower limit should not be negative and it means that to much resources was unlocked
-			if (_limitedDouble.LowerLimit < 0) throw new InvalidOperationException("Lower limit was set to negative values");
 		}
 
 		/// <summary>

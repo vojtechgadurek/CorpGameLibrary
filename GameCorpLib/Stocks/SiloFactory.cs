@@ -31,7 +31,7 @@ namespace GameCorpLib.Stocks
 		public static Silo<TResourceType> CreateNoLimitsSilo<TResourceType>()
 		{
 			return new SiloConfiguration<TResourceType>()
-				.SetInfiniteCapacity()
+				.SetNoLimits()
 				.CreateSiloInstance();
 		}
 	}

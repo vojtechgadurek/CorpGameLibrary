@@ -42,14 +42,10 @@ namespace GameCorpLib.Transactions
 				_disposed = true;
 			}
 		}
-
-		public void LowerAountToTransfer(R<TResourceType> amount)
+		void CompleteTrade()
 		{
-			lock (this)
-			{
-				AmountToTransfer -= amount;
-				if (AmountToTransfer == 0.Create<TResourceType>()) TransferCompleted = true;
-			}
+			TransferCompleted = true;
+			ReleaseResources();
 		}
 
 		public void ExecutePartialTransfer(double proportion)
@@ -59,10 +55,7 @@ namespace GameCorpLib.Transactions
 
 			lock (this)
 			{
-				if (!CheckSetupIsOk()) throw new InvalidOperationException("Setup is not ok");
-				var amountUsed = _lockedResource.GetPartial(proportion);
-				AmountToTransfer -= amountUsed;
-				_blockedCapacity.Use(_lockedResource.GetPartial(proportion));
+				TryExecutePartialTransfer(AmountToTransfer * proportion);
 			}
 		}
 		public bool TryExecutePartialTransfer(R<TResourceType> resource)
@@ -75,8 +68,13 @@ namespace GameCorpLib.Transactions
 				var ansver = _lockedResource.TryGetPartial(resource); //This cannot be null
 				if (!ansver.Item1) return false; //Resource requested was to large
 
-				AmountToTransfer -= ansver.Item2;
 				_blockedCapacity.Use(ansver.Item2); //This cannot be null
+
+
+				AmountToTransfer -= ansver.Item2;
+				if (AmountToTransfer == 0.Create<TResourceType>()) CompleteTrade();
+				if (AmountToTransfer < 0.Create<TResourceType>()) throw new InvalidOperationException("Amount to transfer cannot be negative");
+
 				return true;
 
 			}

@@ -9,6 +9,7 @@ using GameCorpLib.Persons;
 
 namespace GameCorpLib
 {
+	//Tohle je v plánu přemyslet, protože v současné architektuře úplně nedává smysl
 	public class GameControler : IUserMaintainer
 	{
 		/// <summary>

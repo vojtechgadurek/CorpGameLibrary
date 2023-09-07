@@ -9,7 +9,6 @@ namespace GameCorpLib.Transactions
 	public class HoldedResourceManager<TResourceType>
 	{
 
-		protected HashSet<Holded<TResourceType>> _holdedResource = new HashSet<Holded<TResourceType>>();
 		private Action<TResourceType> releaseDelegate;
 		public HoldedResourceManager(Action<TResourceType> releaseDelegate)
 		{
@@ -20,9 +19,7 @@ namespace GameCorpLib.Transactions
 		{
 			lock (this)
 			{
-				if (!_holdedResource.Contains(holded)) throw new InvalidOperationException("Holded resource not found");
 				releaseDelegate.Invoke(holdedAmount);
-				_holdedResource.Remove(holded);
 			}
 		}
 
@@ -38,16 +35,13 @@ namespace GameCorpLib.Transactions
 		public Locked<TResourceType> CreateLocked(TResourceType amount)
 		{
 			var locked = new Locked<TResourceType>(amount, this);
-			_holdedResource.Add(locked);
 			return locked;
 		}
 		public void Take(Locked<TResourceType> locked)
 		{
 			lock (this)
 			{
-				if (!_holdedResource.Contains(locked)) throw new InvalidOperationException("Locked resource not found");
 				takeDelegate.Invoke(locked.Amount);
-				_holdedResource.Remove(locked);
 			}
 		}
 	}
@@ -60,7 +54,6 @@ namespace GameCorpLib.Transactions
 		public LockedResource<TResource> CreateLockedResource(TResource amount)
 		{
 			var locked = new LockedResource<TResource>(amount, this);
-			_holdedResource.Add(locked);
 			return locked;
 		}
 		public void PartialTake(LockedResource<TResource> locked, TResource amountToUse)
@@ -71,13 +64,8 @@ namespace GameCorpLib.Transactions
 			lock (this)
 			{
 				if (amountToUse.CompareTo(locked.Amount) == 1) throw new InvalidOperationException($"Taken {amountToUse} to large to {locked.Amount}");
-				if (!_holdedResource.Contains(locked)) throw new InvalidOperationException("Locked resource not found");
 				takeDelegate.Invoke(amountToUse);
 				//This may not be best idea, but is it like 12:00 and I'm tired
-				if (locked.Amount.IsZero())
-				{
-					_holdedResource.Remove(locked);
-				}
 			}
 		}
 	}
@@ -92,7 +80,6 @@ namespace GameCorpLib.Transactions
 		public Blocked<TBlocked, TBlockedFor> CreateBlocked(TBlocked amount)
 		{
 			var blocked = new Blocked<TBlocked, TBlockedFor>(amount, this);
-			_holdedResource.Add(blocked);
 			return blocked;
 		}
 
@@ -100,9 +87,7 @@ namespace GameCorpLib.Transactions
 		{
 			lock (this)
 			{
-				if (!_holdedResource.Contains(blockedCapacity)) throw new InvalidOperationException("Blocked resource not found");
 				useDelegate.Invoke(resource);
-				_holdedResource.Remove(blockedCapacity);
 				return;
 			}
 		}

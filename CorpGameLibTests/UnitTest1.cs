@@ -128,6 +128,14 @@ namespace CorpGameLibTests
 				Assert.Equal(900.Create<Oil>().ToCapacity(), silo.BlockedCapacity);
 
 			}
+
+			[Fact]
+			public void TestSiloWithoutLimits()
+			{
+				var silo = SiloFactory.CreateNoLimitsSilo<Oil>();
+				Assert.True(silo.TryIncreaseAmount(-1000.Create<Oil>()));
+				Assert.True(silo.TryIncreaseAmount(10000000.Create<Oil>()));
+			}
 		}
 		public class TestUserManagment
 		{
@@ -218,6 +226,21 @@ namespace CorpGameLibTests
 				Assert.False(transaction.TryExecuteProportional(0));
 				Assert.False(transaction.TryExecuteProportional(0.5));
 
+			}
+
+			[Fact]
+			public void TestTwoPartyPartialTransaction()
+			{
+				var Game = new Utils.BasicGame();
+				var market = Game.GameControler.Game.SpotMarket.GetSpotMarket<Oil>();
+				Game.Poor.Stock.TryAddResource(new R<Oil>(1000));
+
+				var transaction = new TwoPartyProportionalTransaction<Oil, Money>(
+					new R<Oil>(100),
+					new R<Money>(100),
+					Game.Poor.Trader,
+					market);
+				Assert.True(transaction.TryExecuteProportional(1));
 			}
 
 			[Fact]
