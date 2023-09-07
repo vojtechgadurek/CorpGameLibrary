@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 
 namespace GameCorpLib.Stocks
@@ -17,11 +18,11 @@ namespace GameCorpLib.Stocks
 				.CreateSiloInstance();
 		}
 
-		public static Silo<TResourceType> CreateHardResourceSilo<TResourceType>(R<Capacity<TResourceType>> capacity, Player player, SpotMarketInResource<TResourceType> spotMarket)
+		public static Silo<TResourceType> CreateHardResourceSilo<TResourceType>(double capacity, Player player, SpotMarket spotMarket)
 		{
-			ResourceSpillHandler<TResourceType> resourceSpillHandler = new ResourceSpillHandler<TResourceType>(player, spotMarket);
+			ResourceSpillHandler<TResourceType> resourceSpillHandler = new ResourceSpillHandler<TResourceType>(player, spotMarket.GetSpotMarket<TResourceType>());
 			return new SiloConfiguration<TResourceType>()
-				.SetCapacity(capacity)
+				.SetCapacity(capacity.Create<TResourceType>().GetCapacity())
 				.SetSpillHandler(resourceSpillHandler)
 				.SetUnderfillHandler(resourceSpillHandler)
 				.CreateSiloInstance();
@@ -160,8 +161,8 @@ namespace GameCorpLib.Stocks
 			return new Silo<TResourceType>(this);
 		}
 	}
-
-	public class Silo<TResourceType>
+	public abstract class Silo { }
+	public class Silo<TResourceType> : Silo
 	{
 		/// <summary>
 		/// Silo is used for storing resources, it has a capacity and enforces it. It maybe be possible to overfill or underfill with force methods
@@ -187,10 +188,10 @@ namespace GameCorpLib.Stocks
 		private IUnderfillHandler<TResourceType> underfillHandler;
 
 		#region Blocking_and_locking
-		private LockedResourceManager<R<TResourceType>> lockedResourceManager;
-		private BlockedResourceManager<TResourceType> blockedResourceManager;
+		private LockedResource_ResourceManager<R<TResourceType>> lockedResourceManager;
+		private BlockedResourceManager<R<Capacity<TResourceType>>, R<TResourceType>> blockedResourceManager;
 		Action<R<TResourceType>> releaseLockedResources;
-		Action<R<TResourceType>> releaseBlockedCapacity;
+		Action<R<Capacity<TResourceType>>> releaseBlockedCapacity;
 		Action<R<TResourceType>> takeResource;
 		Action<R<TResourceType>> consumeBlockedCapacity;
 		#endregion
@@ -215,10 +216,10 @@ namespace GameCorpLib.Stocks
 			//Setup locking and blocking
 			releaseLockedResources = (R<TResourceType> resourceToRelease) => { UnlockResource(resourceToRelease); };
 			takeResource = (R<TResourceType> resourceToTake) => { UseLockedResource(resourceToTake); };
-			lockedResourceManager = new LockedResourceManager<R<TResourceType>>(releaseLockedResources, takeResource);
-			releaseBlockedCapacity = (R<TResourceType> resourceToRelease) => { UnblockCapacity(resourceToRelease.GetCapacity()); };
+			lockedResourceManager = new LockedResource_ResourceManager<R<TResourceType>>(releaseLockedResources, takeResource);
+			releaseBlockedCapacity = (R<Capacity<TResourceType>> resourceToRelease) => { UnblockCapacity(resourceToRelease); };
 			consumeBlockedCapacity = (R<TResourceType> resourceToUse) => { UseBlockedResourceCapacity(resourceToUse); };
-			blockedResourceManager = new BlockedResourceManager<TResourceType>(releaseBlockedCapacity, consumeBlockedCapacity);
+			blockedResourceManager = new BlockedResourceManager<R<Capacity<TResourceType>>, R<TResourceType>>(releaseBlockedCapacity, consumeBlockedCapacity);
 
 			this.spillHandler = siloConfiguration.SpillHandler ?? new BasicSpillHandler<TResourceType>();
 			this.underfillHandler = siloConfiguration.UnderfillHandler ?? new BasicSpillHandler<TResourceType>();
@@ -384,15 +385,15 @@ namespace GameCorpLib.Stocks
 			}
 		}
 
-		public Locked<R<TResourceType>>? TryGetLockOnResource(R<TResourceType> resource)
+		public LockedResource<R<TResourceType>>? TryGetLockOnResource(R<TResourceType> resource)
 		{
 			if (!TryLockResource(resource)) return null;
-			return lockedResourceManager.CreateLocked(resource);
+			return lockedResourceManager.CreateLockedResource(resource);
 		}
 
-		public Blocked<TResourceType>? TryGetBlockOnCapacity(R<TResourceType> capacity)
+		public Blocked<R<Capacity<TResourceType>>, R<TResourceType>>? TryGetBlockOnCapacity(R<Capacity<TResourceType>> capacity)
 		{
-			if (!TryBlockCapacity(capacity.GetCapacity())) return null;
+			if (!TryBlockCapacity(capacity)) return null;
 			return blockedResourceManager.CreateBlocked(capacity);
 		}
 

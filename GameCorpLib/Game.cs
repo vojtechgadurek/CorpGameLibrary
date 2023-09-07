@@ -23,14 +23,14 @@ namespace GameCorpLib
 		public int Round = 0;
 		public Registers Registers = new Registers();
 		public OilFieldProspector OilMineProspector;
-		public SpotMarketInResource<Oil> SpotMarket;
+		public SpotMarket SpotMarket;
 		public Bank Bank;
 
 
 
 		public Game()
 		{
-			SpotMarket = new SpotMarketInResource<Oil>(MinimalOilPriceOnMarket);
+			SpotMarket = new SpotMarket(MinimalOilPriceOnMarket);
 			Bank = new Bank(InterestPerRound);
 			OilMineProspector = new OilFieldProspector(Registers.PropertyRegister, MinePrice);
 			CreateAdminAccount();

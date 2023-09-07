@@ -13,8 +13,8 @@ namespace GameCorpLib.Transactions
 		bool _transactionCompleted = false;
 		public bool TransactionCompleted { get => _transactionCompleted; }
 		bool _resourcesReleased = false;
-		public R<TFromSellerResourceType> FromSeller { get => _fromSeller.Resource; }
-		public R<TFromBuyerResourceType> FromBuyer { get => _fromBuyer.Resource; }
+		public R<TFromSellerResourceType> FromSeller { get => _fromSeller.AmountToTransfer; }
+		public R<TFromBuyerResourceType> FromBuyer { get => _fromBuyer.AmountToTransfer; }
 		ResourceTransfer<TFromSellerResourceType> _fromSeller;
 		ResourceTransfer<TFromBuyerResourceType> _fromBuyer;
 
@@ -23,8 +23,8 @@ namespace GameCorpLib.Transactions
 			if (fromSeller.GetType() == fromBuyer.GetType()) throw new InvalidOperationException("Resource types must be different");
 			_fromSeller = new ResourceTransfer<TFromSellerResourceType>(seller, buyer, fromSeller);
 			_fromBuyer = new ResourceTransfer<TFromBuyerResourceType>(buyer, seller, fromBuyer);
-			_setupFailed |= _fromSeller.TransferSetupFailed;
-			_setupFailed |= _fromBuyer.TransferSetupFailed;
+			_setupFailed |= _fromSeller.Disposed;
+			_setupFailed |= _fromBuyer.Disposed;
 
 			if (_setupFailed) CompleteTransaction();
 		}
@@ -36,8 +36,8 @@ namespace GameCorpLib.Transactions
 			lock (this)
 			{
 				bool ansver = true;
-				ansver |= _fromSeller.TryExecutePartialTransfer(_fromSeller.Resource * proportion);
-				ansver |= _fromBuyer.TryExecutePartialTransfer(_fromBuyer.Resource * proportion);
+				ansver |= _fromSeller.TryExecutePartialTransfer(_fromSeller.AmountToTransfer * proportion);
+				ansver |= _fromBuyer.TryExecutePartialTransfer(_fromBuyer.AmountToTransfer * proportion);
 				if (_fromSeller.TransferCompleted || _fromSeller.TransferCompleted) CompleteTransaction();
 				return ansver;
 			}

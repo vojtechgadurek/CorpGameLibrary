@@ -32,7 +32,7 @@ namespace GameCorpLib
 		/// <summary>
 		/// It used for mocking normal user behaviour, but every operation succed,
 		/// </summary>
-		public PrivilegedTrader() : base(new MagicalStock())
+		public PrivilegedTrader() : base(StockFactory.CreatePriviligedTraderStock())
 		{
 		}
 

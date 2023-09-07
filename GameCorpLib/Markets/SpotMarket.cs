@@ -19,13 +19,18 @@ namespace GameCorpLib.Markets
 	public class SpotMarket
 	{
 		IDictionary<Type, object> _spotmarkets = new Dictionary<Type, object>();
-		public SpotMarket()
+		public SpotMarket(R<Money> GovermentBuyout)
 		{
-			foreach (var resource in Resources.Resources)
+			foreach (var resource in Resources.ResourcesList)
 			{
-				object spotMarket = Activator.CreateInstance(typeof(SpotMarketInResource<>).MakeGenericType(resource.TheType));
+				object spotMarket = Activator.CreateInstance(typeof(SpotMarketInResource<>).MakeGenericType(resource.TheType), GovermentBuyout);
 				_spotmarkets.Add(resource.TheType, spotMarket);
 			}
+		}
+
+		public object GetSpotMarket(Type resourceType)
+		{
+			return _spotmarkets[resourceType];
 		}
 		public SpotMarketInResource<TResourceType> GetSpotMarket<TResourceType>()
 		{
@@ -110,7 +115,7 @@ public class SpotMarketInResource<TResourceTradedType> : PrivilegedTrader
 			spotMarketOffer.ReleaseResources();
 		}
 	}
-	public bool TryCompleteTrade()
+	bool TryCompleteTrade()
 	{
 		lock (this)
 		{
@@ -188,5 +193,4 @@ public class SpotMarketInResource<TResourceTradedType> : PrivilegedTrader
 		}
 	}
 
-}
 }

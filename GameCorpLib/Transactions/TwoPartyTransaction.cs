@@ -23,7 +23,7 @@ namespace GameCorpLib.Transactions
 		TwoPartyTransaction AddTransactionItem<TResourceType>(R<TResourceType> resource, Trader from, Trader to)
 		{
 			var resourceTransfer = new ResourceTransfer<TResourceType>(from, to, resource);
-			if (resourceTransfer.TransferSetupFailed)
+			if (resourceTransfer.Disposed)
 			{
 				_isOk = false;
 			}

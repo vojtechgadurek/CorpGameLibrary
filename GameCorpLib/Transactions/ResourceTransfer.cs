@@ -6,135 +6,88 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Transactions
 {
-	public record class ResourceTransfer<TResourceType> : ITransactionItem
+
+	public class ResourceTransfer<TResourceType> : ITransactionItem
 	{
 		public Trader _from;
 		public Trader _to;
-		public R<TResourceType> Resource { get => _resource; }
-		private R<TResourceType> _resource;
-		bool _resourceLocked = false;
-		bool _capacityBlocked = false;
-		bool _transferCompleted = false;
-		public bool TransferCompleted { get { return _transferCompleted; } }
-		bool _transferSetUpFailed = false;
-		public bool TransferSetupFailed { get { return _transferSetUpFailed; } }
+		private LockedResource<R<TResourceType>>? _lockedResource;
+		private Blocked<R<Capacity<TResourceType>>, R<TResourceType>>? _blockedCapacity;
+		public R<TResourceType> AmountToTransfer { get; private set; }
+		private bool _disposed = false;
+		public bool Disposed { get => _disposed; }
 
+		public bool TransferCompleted { get; private set; } = false;
 		public ResourceTransfer(Trader from, Trader to, R<TResourceType> resource)
 		{
 			_from = from;
 			_to = to;
-			_resource = resource;
-			_resourceLocked = from.Stock.TryLockResource(resource);
-			_capacityBlocked = to.Stock.TryBlockResourceCapacity(resource.GetCapacity());
-			if (!_resourceLocked || !_capacityBlocked)
-			{
-				ReleaseResources();
-				_transferSetUpFailed = true;
-			}
+			_lockedResource = from.Stock.TryGetLockOnResource(resource);
+			_blockedCapacity = to.Stock.TryGetBlockOnResourceCapacity(resource.GetCapacity());
+			if (!CheckSetupIsOk()) ReleaseResources();
 		}
 
-		public bool TryIncreaseTransferSize(R<TResourceType> resource)
+		public bool CheckSetupIsOk()
 		{
-			lock (this)
-			{
-				if (resource.Amount < 0) throw new InvalidOperationException("Resource amount must be positive");
-				var resourceTransfer = new ResourceTransfer<TResourceType>(_from, _to, resource);
-				if (resourceTransfer.TransferSetupFailed)
-				{
-					resourceTransfer.ReleaseResources();
-					return false;
-				}
-				_resource.Amount += resource.Amount;
-				return true;
-			}
-		}
-
-		public bool TryExecutePartialTransfer(R<TResourceType> resource)
-		{
-			lock (this)
-			{
-				if ((resource.Amount > _resource.Amount)) return false;
-
-				if (!(_resourceLocked && _capacityBlocked && !_transferCompleted)) return false;
-
-				_resource -= resource;
-				_from.Stock.RemoveLockedResource(resource);
-				_to.Stock.FillBlockedResourceCapacity(resource);
-
-				if (_resource.Amount == 0)
-				{
-					_transferCompleted = true;
-				}
-				return true;
-			}
-
-		}
-
-
-		public void ExecuteTransfer()
-		{
-			lock (this)
-			{
-				TryExecutePartialTransfer(_resource);
-			}
+			return _lockedResource != null && _blockedCapacity != null && !Disposed;
 		}
 
 		public void ReleaseResources()
 		{
 			lock (this)
 			{
-				if (!_transferCompleted)
-				{
-					if (_resourceLocked)
-					{
-						_from.Stock.UnlockResource(_resource);
-					}
-					if (_capacityBlocked)
-					{
-						_to.Stock.UnblockResourceCapacity(_resource.GetCapacity());
-					}
-					_transferCompleted = true;
-				}
+				_lockedResource?.Release();
+				_blockedCapacity?.Release();
+				_disposed = true;
 			}
 		}
-	}
 
-	public class ResourceTransferViaLock<TResourceType>
-	{
-		public Trader _from;
-		public Trader _to;
-		private Locked<R<TResourceType>>? _lockedResource;
-		private Blocked<TResourceType>? _blockedCapacity;
-		public ResourceTransferViaLock(Trader from, Trader to, R<TResourceType> resource)
+		public void LowerAountToTransfer(R<TResourceType> amount)
 		{
-			_from = from;
-			_to = to;
-			var x = from.Stock.TryGetLockOnResource(resource);
-			_lockedResource = from.Stock.TryGetLockOnResource(resource);
-			_blockedCapacity = to.Stock.TryGetBlockOnResourceCapacity(resource.GetCapacity());
+			lock (this)
+			{
+				AmountToTransfer -= amount;
+				if (AmountToTransfer == 0.Create<TResourceType>()) TransferCompleted = true;
+			}
 		}
 
-
-		public bool TryExecuteTransfer()
+		public void ExecutePartialTransfer(double proportion)
 		{
-			if (_lockedResource != null && _blockedCapacity != null && !_lockedResource.Disposed && !_blockedCapacity.Disposed)
+			if (proportion < 0 || proportion > 1) throw new InvalidOperationException("Proportion must be between 0 and 1");
+
+
+			lock (this)
 			{
-				_blockedCapacity.Use(_lockedResource.Get());
+				if (!CheckSetupIsOk()) throw new InvalidOperationException("Setup is not ok");
+				var amountUsed = _lockedResource.GetPartial(proportion);
+				AmountToTransfer -= amountUsed;
+				_blockedCapacity.Use(_lockedResource.GetPartial(proportion));
+			}
+		}
+		public bool TryExecutePartialTransfer(R<TResourceType> resource)
+		{
+			lock (this)
+			{
+
+				if (!CheckSetupIsOk()) return false;
+
+				var ansver = _lockedResource.TryGetPartial(resource); //This cannot be null
+				if (!ansver.Item1) return false; //Resource requested was to large
+
+				AmountToTransfer -= ansver.Item2;
+				_blockedCapacity.Use(ansver.Item2); //This cannot be null
 				return true;
-			}
-			else
-			{
-				ReleaseResource();
-				return false;
+
 			}
 		}
 
-		public void ReleaseResource()
+		public void ExecuteTransfer()
 		{
-			_lockedResource?.Release();
-			_blockedCapacity?.Release();
+			lock (this)
+			{
+				ExecutePartialTransfer(1);
+			}
 		}
-
 	}
 
 }
