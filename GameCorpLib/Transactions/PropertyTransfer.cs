@@ -23,6 +23,7 @@ namespace GameCorpLib.Transactions
 			_from = from;
 			_to = to;
 			_itemTraded = itemTraded;
+
 			if (itemTraded.Owner != from)
 			{
 				_transferSetupFailed = true;

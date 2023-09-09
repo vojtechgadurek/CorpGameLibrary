@@ -6,7 +6,7 @@ namespace GameCorpLib.Stocks
 {
 
 	public abstract class Silo { }
-	public class Silo<TResourceType> : Silo
+	public class Silo<TResourceType> : Silo where TResourceType : IResource
 	{
 		/// <summary>
 		/// Silo is used for storing resources, it has a capacity and enforces it. It maybe be possible to overfill or underfill with force methods
@@ -99,6 +99,8 @@ namespace GameCorpLib.Stocks
 		{
 			get => (_limitedDouble.UpperLimit - _limitedDouble.Value).Create<TResourceType>().ToCapacity();
 		}
+
+		public R<Capacity<TResourceType>> Capacity => _capacity;
 
 		/// <summary>
 		/// Tries to set amount of resource in the silo, if it has enough capacity otherwise fails

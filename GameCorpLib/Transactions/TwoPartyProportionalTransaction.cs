@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Transactions
 {
-	public class TwoPartyProportionalTransaction<TFromSellerResourceType, TFromBuyerResourceType>
+	public class TwoPartyProportionalTransaction<TFromSellerResourceType, TFromBuyerResourceType> where TFromSellerResourceType : IResource where TFromBuyerResourceType : IResource
 	{
 		bool _setupFailed = false;
 		public bool SetupFailed { get => _setupFailed; }
@@ -43,7 +43,7 @@ namespace GameCorpLib.Transactions
 			}
 		}
 
-		public bool TryExecuteProportional<TResourceType>(R<TResourceType> resource)
+		public bool TryExecuteProportional<TResourceType>(R<TResourceType> resource) where TResourceType : IResource
 		{
 			lock (this)
 			{

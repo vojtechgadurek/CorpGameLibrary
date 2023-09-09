@@ -18,7 +18,7 @@ namespace GameCorpLib.Stocks
 				.CreateSiloInstance();
 		}
 
-		public static Silo<TResourceType> CreateHardResourceSilo<TResourceType>(double capacity, Player player, SpotMarket spotMarket)
+		public static Silo<TResourceType> CreateHardResourceSilo<TResourceType>(double capacity, Player player, SpotMarket spotMarket) where TResourceType : IResource
 		{
 			ResourceSpillHandler<TResourceType> resourceSpillHandler = new ResourceSpillHandler<TResourceType>(player, spotMarket.GetSpotMarket<TResourceType>());
 			return new SiloConfiguration<TResourceType>()
@@ -28,7 +28,7 @@ namespace GameCorpLib.Stocks
 				.CreateSiloInstance();
 		}
 
-		public static Silo<TResourceType> CreateNoLimitsSilo<TResourceType>()
+		public static Silo<TResourceType> CreateNoLimitsSilo<TResourceType>() where TResourceType : IResource
 		{
 			return new SiloConfiguration<TResourceType>()
 				.SetNoLimits()

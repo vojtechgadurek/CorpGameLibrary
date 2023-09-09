@@ -1,4 +1,5 @@
-﻿using GameCorpLib.State;
+﻿using GameCorpLib.Persons;
+using GameCorpLib.State;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib
 {
-	public class Player
+	public class Player : ITrader
 	{
 		public string Name;
 		public readonly int Id;

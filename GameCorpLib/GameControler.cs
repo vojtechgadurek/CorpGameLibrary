@@ -12,9 +12,6 @@ namespace GameCorpLib
 	//Tohle je v plánu přemyslet, protože v současné architektuře úplně nedává smysl
 	public class GameControler : IUserMaintainer
 	{
-		/// <summary>
-		/// Game being public is temporary and used only for tests!
-		/// </summary>
 		public readonly Game Game = new Game();
 
 		public R<Money> OilFieldPrice { get => Game.MinePrice; }

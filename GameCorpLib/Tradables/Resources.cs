@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -35,13 +36,11 @@ namespace GameCorpLib.Tradables
 			Name = name;
 			TypeOfResourceType = typeOfResourceType;
 			TheType = type;
-
-
 		}
 	}
-	static class Resources
+	public static class Resources
 	{
-		public static IList<ResourceAttribute> ResourcesList = new List<ResourceAttribute>();
+		public static IDictionary<Type, ResourceAttribute> ResourcesList = new Dictionary<Type, ResourceAttribute>();
 		static Resources()
 		{
 			foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -49,9 +48,14 @@ namespace GameCorpLib.Tradables
 				var resourceAttribute = type.GetCustomAttribute<ResourceAttribute>();
 				if (resourceAttribute != null)
 				{
-					ResourcesList.Add(resourceAttribute);
+					ResourcesList.Add(type, resourceAttribute);
 				}
 			}
+		}
+
+		public static ResourceAttribute GetResourceAttributeByType(Type type)
+		{
+			return ResourcesList[type];
 		}
 
 	}

@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Stocks
 {
-	public interface ISpillHandler<TResourceType>
+	public interface ISpillHandler<TResourceType> where TResourceType : IResource
 	{
 		void HandleSpill(R<TResourceType> spillAmount);
 	}
 
-	public interface IUnderfillHandler<TResourceType>
+	public interface IUnderfillHandler<TResourceType> where TResourceType : IResource
 	{
 		void HandleUnderfill(R<TResourceType> underfillAmount);
 	}
 
-	public class BasicSpillHandler<TResourceType> : ISpillHandler<TResourceType>, IUnderfillHandler<TResourceType>
+	public class BasicSpillHandler<TResourceType> : ISpillHandler<TResourceType>, IUnderfillHandler<TResourceType> where TResourceType : IResource
 	{
 		R<TResourceType> spillAmount;
 		public void HandleSpill(R<TResourceType> spillAmount)
@@ -50,7 +50,7 @@ namespace GameCorpLib.Stocks
 		}
 	}
 
-	public class ResourceSpillHandler<TResourceType> : ISpillHandler<TResourceType>, IUnderfillHandler<TResourceType>
+	public class ResourceSpillHandler<TResourceType> : ISpillHandler<TResourceType>, IUnderfillHandler<TResourceType> where TResourceType : IResource
 	{
 		SpotMarketInResource<TResourceType> _spotMarket;
 		Player _player;

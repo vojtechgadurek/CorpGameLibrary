@@ -2,13 +2,14 @@
 using GameCorpLib.Transactions;
 using System.Collections;
 using System.Transactions;
+using GameCorpLib.Persons;
 
 namespace GameCorpLib
 {
-	public class Trader
+	public class Trader : ITrader
 	{
 
-		public Stock Stock;
+		public Stock Stock { get; private set; }
 		public Properties Properties = new Properties();
 
 		public Trader(Stock stock)
@@ -18,7 +19,7 @@ namespace GameCorpLib
 		public R<Money> Money { get => Stock.GetResource<Money>(); }
 		public R<Oil> Oil { get => Stock.GetResource<Oil>(); }
 
-		public bool TryDoTrade<TResourceTypeFromBuyer, TResourceTypeFromSeller>(R<TResourceTypeFromBuyer> fromBuyer, R<TResourceTypeFromSeller> fromSeller, Trader buyer, Trader seller)
+		public bool TryDoTrade<TResourceTypeFromBuyer, TResourceTypeFromSeller>(R<TResourceTypeFromBuyer> fromBuyer, R<TResourceTypeFromSeller> fromSeller, Trader buyer, Trader seller) where TResourceTypeFromBuyer : IResource where TResourceTypeFromSeller : IResource
 		{
 			return new TwoPartyTransaction(buyer, seller)
 				.AddTransactionItem(fromBuyer, TransactionDirection.FromBuyerToSeller)
@@ -29,9 +30,6 @@ namespace GameCorpLib
 
 	public class PrivilegedTrader : Trader
 	{
-		/// <summary>
-		/// It used for mocking normal user behaviour, but every operation succed,
-		/// </summary>
 		public PrivilegedTrader() : base(StockFactory.CreatePriviligedTraderStock())
 		{
 		}

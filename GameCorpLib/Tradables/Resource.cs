@@ -12,7 +12,7 @@ namespace GameCorpLib.Tradables
 {
 
 
-	public struct R<TResource> : IOrderedVector<R<TResource>>
+	public struct R<TResource> : IOrderedVector<R<TResource>> where TResource : IResource
 	{
 		public double Amount;
 		public R(double amount)
@@ -124,18 +124,18 @@ namespace GameCorpLib.Tradables
 public static class RExtensions
 {
 
-	public static bool WillFit<TResource>(this R<Capacity<TResource>> capacity, R<TResource> resourceHeld)
+	public static bool WillFit<TResource>(this R<Capacity<TResource>> capacity, R<TResource> resourceHeld) where TResource : IResource
 	{
 		return capacity.Amount >= resourceHeld.Amount;
 	}
 }
 public static class IntExtenskon
 {
-	public static R<TResource> Create<TResource>(this int number)
+	public static R<TResource> Create<TResource>(this int number) where TResource : IResource
 	{
 		return new R<TResource>(number);
 	}
-	public static R<TResource> Create<TResource>(this double number)
+	public static R<TResource> Create<TResource>(this double number) where TResource : IResource
 	{
 		return new R<TResource>(number);
 	}

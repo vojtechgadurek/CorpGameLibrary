@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameCorpLib.Stocks
 {
-	public class SiloConfiguration<TResourceType>
+	public class SiloConfiguration<TResourceType> where TResourceType : IResource
 	{
 		public R<Capacity<TResourceType>>? Capacity { get; private set; } = null;
 		public R<TResourceType>? Resource { get; private set; } = null;

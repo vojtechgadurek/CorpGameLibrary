@@ -23,8 +23,8 @@ namespace GameCorpLib.Markets
 		{
 			foreach (var resource in Resources.ResourcesList)
 			{
-				object spotMarket = Activator.CreateInstance(typeof(SpotMarketInResource<>).MakeGenericType(resource.TheType), GovermentBuyout);
-				_spotmarkets.Add(resource.TheType, spotMarket);
+				object spotMarket = Activator.CreateInstance(typeof(SpotMarketInResource<>).MakeGenericType(resource.Value.TheType), GovermentBuyout);
+				_spotmarkets.Add(resource.Value.TheType, spotMarket);
 			}
 		}
 
@@ -32,14 +32,14 @@ namespace GameCorpLib.Markets
 		{
 			return _spotmarkets[resourceType];
 		}
-		public SpotMarketInResource<TResourceType> GetSpotMarket<TResourceType>()
+		public SpotMarketInResource<TResourceType> GetSpotMarket<TResourceType>() where TResourceType : IResource
 		{
 			return (SpotMarketInResource<TResourceType>)_spotmarkets[typeof(TResourceType)];
 		}
 	}
 }
 
-public class SpotMarketOffer<TResourceTradedType>
+public class SpotMarketOffer<TResourceTradedType> where TResourceTradedType : IResource
 {
 	SpotMarketOfferType _offerType;
 	TwoPartyProportionalTransaction<TResourceTradedType, Money> _proportionalTransaction;
@@ -87,13 +87,13 @@ public class SpotMarketOffer<TResourceTradedType>
 }
 
 
-public class SpotMarketInResource<TResourceTradedType> : PrivilegedTrader
+public class SpotMarketInResource<TResourceTradedType> : PrivilegedTrader where TResourceTradedType : IResource
 {
 	R<Money> _govermentBuyout;
 	public SortedSet<SpotMarketOffer<TResourceTradedType>> SellOffers = new SortedSet<SpotMarketOffer<TResourceTradedType>>(new SpotMarketComparer<TResourceTradedType>());
 	public SortedSet<SpotMarketOffer<TResourceTradedType>> BuyOffers = new SortedSet<SpotMarketOffer<TResourceTradedType>>(new SpotMarketComparer<TResourceTradedType>());
 
-	class SpotMarketComparer<TResourceType> : IComparer<SpotMarketOffer<TResourceType>>
+	class SpotMarketComparer<TResourceType> : IComparer<SpotMarketOffer<TResourceType>> where TResourceType : IResource
 	{
 		public int Compare(SpotMarketOffer<TResourceType> x, SpotMarketOffer<TResourceType> y)
 		{

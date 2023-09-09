@@ -17,8 +17,9 @@ namespace GameCorpLib.Stocks
 		public static Stock CreateNormalPlayerStock(Player player, double BaseHardResourceCapacity, Bank bank, SpotMarket spotMarket)
 		{
 			IDictionary<Type, object> _silos = new Dictionary<Type, object>();
-			foreach (var resource in Resources.ResourcesList)
+			foreach (var tupleKeyResource in Resources.ResourcesList)
 			{
+				var resource = tupleKeyResource.Value;
 				if (resource.TypeOfResourceType == TypeOfResourceType.Cash)
 				{
 					if (resource.TheType != typeof(Money)) throw new NotImplementedException("This would require additional generalization of bank etc");
@@ -48,10 +49,10 @@ namespace GameCorpLib.Stocks
 			{
 				var type = typeof(SiloFactory);
 				var method = type.GetMethod("CreateNoLimitsSilo");
-				var GenericMethod = method.MakeGenericMethod(resource.TheType);
+				var GenericMethod = method.MakeGenericMethod(resource.Value.TheType);
 				var silo = GenericMethod.Invoke(null, new object[] { });
 				_silos.Add(
-					resource.TheType, silo)
+					resource.Value.TheType, silo)
 					;
 			}
 			return new Stock(_silos);
@@ -66,7 +67,7 @@ namespace GameCorpLib.Stocks
 			this._silos = silos;
 		}
 
-		private Silo<TResourceType> GetSilo<TResourceType>()
+		private Silo<TResourceType> GetSilo<TResourceType>() where TResourceType : IResource
 		{
 			var silo = _silos[typeof(TResourceType)];
 			if (silo == null)
@@ -78,36 +79,56 @@ namespace GameCorpLib.Stocks
 			return (Silo<TResourceType>)silo;
 		}
 
-		public R<TResourceType> GetResource<TResourceType>()
+		public R<TResourceType> GetResource<TResourceType>() where TResourceType : IResource
 		{
 			return GetSilo<TResourceType>().Amount;
 
 		}
-		public bool TrySetResource<TResourceType>(R<TResourceType> resource)
+		public bool TrySetResource<TResourceType>(R<TResourceType> resource) where TResourceType : IResource
 		{
 			return GetSilo<TResourceType>().TrySetAmount(resource);
 		}
-		public bool TryAddResource<TResourceType>(R<TResourceType> resource)
+		public bool TryAddResource<TResourceType>(R<TResourceType> resource) where TResourceType : IResource
 		{
 			return GetSilo<TResourceType>().TryIncreaseAmount(resource);
 		}
-		public void ForceIncreaseResources<TResourceType>(R<TResourceType> resource)
+		public void ForceIncreaseResources<TResourceType>(R<TResourceType> resource) where TResourceType : IResource
 		{
 			GetSilo<TResourceType>().ForceIncreaseResource(resource);
 		}
-		public bool TrySetResourceCapacity<TResourceType>(R<Capacity<TResourceType>> resource)
+		public bool TrySetResourceCapacity<TResourceType>(R<Capacity<TResourceType>> resource) where TResourceType : IResource
 		{
 			return GetSilo<TResourceType>().TrySetCapacity(resource);
 		}
 
-		public LockedResource<R<TResourceType>>? TryGetLockOnResource<TResourceType>(R<TResourceType> amount)
+		public LockedResource<R<TResourceType>>? TryGetLockOnResource<TResourceType>(R<TResourceType> amount) where TResourceType : IResource
 		{
 			return GetSilo<TResourceType>().TryGetLockOnResource(amount);
 		}
 
-		public Blocked<R<Capacity<TResourceType>>, R<TResourceType>>? TryGetBlockOnResourceCapacity<TResourceType>(R<Capacity<TResourceType>> amount)
+		public Blocked<R<Capacity<TResourceType>>, R<TResourceType>>? TryGetBlockOnResourceCapacity<TResourceType>(R<Capacity<TResourceType>> amount) where TResourceType : IResource
 		{
 			return GetSilo<TResourceType>().TryGetBlockOnCapacity(amount);
 		}
+
+		public R<Capacity<TResourceType>> GetCapacity<TResourceType>() where TResourceType : IResource
+		{
+			return GetSilo<TResourceType>().Capacity;
+		}
+		public R<Capacity<TResourceType>> GetFreeCapacity<TResourceType>() where TResourceType : IResource
+		{
+			return GetSilo<TResourceType>().FreeCapacity;
+		}
+
+		public R<Capacity<TResourceType>> GetBlockedCapacity<TResourceType>() where TResourceType : IResource
+		{
+			return GetSilo<TResourceType>().BlockedCapacity;
+		}
+		public R<TResourceType> GetLockedResourceAmount<TResourceType>() where TResourceType : IResource
+		{
+			return GetSilo<TResourceType>().LockedResource;
+		}
+
+
 	}
 }

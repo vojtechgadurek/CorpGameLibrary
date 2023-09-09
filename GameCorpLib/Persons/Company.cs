@@ -1,14 +1,15 @@
-﻿using GameCorpLib.State;
+﻿using GameCorpLib.Persons;
+using GameCorpLib.State;
 
 namespace GameCorpLib
 {
-	public class Company
+	public class Company : ITrader
 	{
 		public string Name;
 		readonly int Id;
 		Player Controler;
 		Trader trader;
-		Stock Stock => trader.Stock;
+		public Stock Stock { get => trader.Stock; }
 		public Company(string name, Player controler, CompanyRegister companyRegister)
 		{
 			Name = name;

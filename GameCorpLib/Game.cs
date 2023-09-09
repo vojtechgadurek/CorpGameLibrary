@@ -39,7 +39,6 @@ namespace GameCorpLib
 		{
 			var player = new Player("admin", "admin", Registers.PlayersRegister, Bank, BaseStockSize, SpotMarket);
 			player.Admin = true;
-			player.Stock.TrySetResourceCapacity(new R<Capacity<Money>>(100000000));
 			player.Stock.TrySetResource(new R<Money>(1000000));
 		}
 		public void NewRound()

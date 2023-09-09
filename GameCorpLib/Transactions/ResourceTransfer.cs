@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace GameCorpLib.Transactions
 {
 
-	public class ResourceTransfer<TResourceType> : ITransactionItem
+	public class ResourceTransfer<TResourceType> : ITransactionItem where TResourceType : IResource
 	{
 		public Trader _from;
 		public Trader _to;
@@ -22,8 +22,18 @@ namespace GameCorpLib.Transactions
 		{
 			_from = from;
 			_to = to;
-			_lockedResource = from.Stock.TryGetLockOnResource(resource);
-			_blockedCapacity = to.Stock.TryGetBlockOnResourceCapacity(resource.ToCapacity());
+
+			//It is not possible to lock negative amount of resources
+			//So the solution is to switch direction
+			if (resource < 0.Create<TResourceType>())
+			{
+				_from = to;
+				_to = from;
+				resource = -resource;
+			}
+
+			_lockedResource = _from.Stock.TryGetLockOnResource(resource);
+			_blockedCapacity = _to.Stock.TryGetBlockOnResourceCapacity(resource.ToCapacity());
 			AmountToTransfer = resource;
 			if (!CheckSetupIsOk()) ReleaseResources();
 		}
