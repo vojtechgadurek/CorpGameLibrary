@@ -46,7 +46,10 @@ namespace GameCorpLib.Stocks
 		}
 		public void HandleUnderfill(R<Money> underfillAmount)
 		{
-			_bank.TakeLoan(_player, underfillAmount);
+			lock (_player.Stock) {
+				_bank.TakeLoan(_player, underfillAmount);
+				_player.Stock.ForceIncreaseResources<Money>(-underfillAmount);
+			}
 		}
 	}
 

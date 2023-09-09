@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -90,6 +91,7 @@ public class SpotMarketOffer<TResourceTradedType> where TResourceTradedType : IR
 public class SpotMarketInResource<TResourceTradedType> : PrivilegedTrader where TResourceTradedType : IResource
 {
 	R<Money> _govermentBuyout;
+	public R<Money> GovermentBuyout { get => _govermentBuyout; }
 	public SortedSet<SpotMarketOffer<TResourceTradedType>> SellOffers = new SortedSet<SpotMarketOffer<TResourceTradedType>>(new SpotMarketComparer<TResourceTradedType>());
 	public SortedSet<SpotMarketOffer<TResourceTradedType>> BuyOffers = new SortedSet<SpotMarketOffer<TResourceTradedType>>(new SpotMarketComparer<TResourceTradedType>());
 
@@ -147,21 +149,17 @@ public class SpotMarketInResource<TResourceTradedType> : PrivilegedTrader where 
 	{
 		lock (this)
 		{
-			while (toLiquidate > 0.Create<TResourceTradedType>())
+			while (toLiquidate > 0.Create<TResourceTradedType>() && BuyOffers.Count > 0)
 			{
 				var higgestPriceOffer = BuyOffers.Last();
 				//If there is no noone to buy then there is goverment to buy :D at very miserable price
-				if (higgestPriceOffer is null)
-				{
-					player.Stock.ForceIncreaseResources<Money>(toLiquidate.Amount * _govermentBuyout);
-					return;
-				}
 				R<TResourceTradedType> amountSold = higgestPriceOffer.ResourceTraded < toLiquidate ? higgestPriceOffer.ResourceTraded : toLiquidate;
 				higgestPriceOffer.TryFill(amountSold);
 
 				player.Stock.ForceIncreaseResources<Money>((amountSold.Amount * higgestPriceOffer.PricePerUnit));
 				toLiquidate -= amountSold;
 			}
+			player.Stock.ForceIncreaseResources<Money>(toLiquidate.Amount * _govermentBuyout);
 		}
 	}
 

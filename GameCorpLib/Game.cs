@@ -14,7 +14,7 @@ namespace GameCorpLib
 		// Game setup variables
 		public readonly R<Money> MinePrice = new R<Money>(1000);
 		public readonly R<Money> PlayerStartingMoney = new R<Money>(10000);
-		public readonly R<Money> MinimalOilPriceOnMarket = new R<Money>(10);
+		public readonly R<Money> MinimalOilPriceOnMarket = new R<Money>(-10);
 		public readonly double InterestPerRound = 10;
 		public readonly double BaseMoneyForNormalPlayer = 10000;
 		public readonly double BaseStockSize = 10000;

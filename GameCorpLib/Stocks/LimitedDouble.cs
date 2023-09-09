@@ -75,7 +75,7 @@ namespace GameCorpLib.Stocks
 				}
 				else if (_value + amount < _lowerLimit)
 				{
-					double spill = -(amount + Value - _lowerLimit);
+					double spill = amount + Value - _lowerLimit;
 					_value = _lowerLimit;
 					return spill;
 				}

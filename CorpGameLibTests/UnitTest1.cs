@@ -280,6 +280,17 @@ namespace CorpGameLibTests
 
 				Assert.Equal(1, market.SellOffers.Count);
 			}
+
+			[Fact]
+			public void TestLiquidateOnMarketPrice()
+			{
+				var Game = new Utils.BasicGame();
+				var market = Game.GameControler.Game.SpotMarket.GetSpotMarket<Oil>();
+				double amount = 1000;
+				market.OnMarketPriceLiqudation(amount.Create<Oil>(), Game.Poor);
+				Assert.Equal(-market.GovermentBuyout * amount, Game.GameControler.Game.Bank.GetCashLend(Game.Poor));
+			}
+
 		}
 	}
 }

@@ -171,7 +171,7 @@ namespace GameCorpLib.Stocks
 		public void ForceIncreaseResource(R<TResourceType> resource)
 		{
 			double spill = _limitedDouble.IncreaseWithSpill(resource.Amount);
-			if (spill > 0) HandleSpill(new R<TResourceType>(spill));
+			if (spill != 0) HandleSpill(new R<TResourceType>(spill));
 		}
 		/// <summary>
 		/// Unlocks resource, so it can be used in normal interactions, amount can not be negative.
@@ -243,7 +243,7 @@ namespace GameCorpLib.Stocks
 
 		public void HandleSpill(R<TResourceType> spill)
 		{
-			if (spill > 0.Create<TResourceType>()) { spillHandler.HandleSpill(spill); } else { spillHandler.HandleSpill(-spill); }
+			if (spill > 0.Create<TResourceType>()) { spillHandler.HandleSpill(spill); } else { underfillHandler.HandleUnderfill(-spill); }
 		}
 	}
 }

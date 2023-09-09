@@ -29,6 +29,7 @@ namespace GameCorpLib
 			player.Stock.ForceIncreaseResources(cashToBorrow);
 		}
 
+
 		public R<Money> GetCashLend(Player player)
 		{
 			if (!_loans.ContainsKey(player)) _loans.Add(player, new R<Money>(0));
