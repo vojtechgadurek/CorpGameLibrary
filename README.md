@@ -1,7 +1,7 @@
 # Documentation
 Vojtěch Gadurek - August 2023
 ## Sumary
-The project is a library for (unfinished minning game)[https://github.com/vojtechgadurek/MinnigGameBlazorServer]
+The project is a library for unfinished minning game [https://github.com/vojtechgadurek/MinnigGameBlazorServer]
 It offers these features
   - safe transactions, that always uphold game rules
   - storages with limited capacity with customisible handling of overflows
