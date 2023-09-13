@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,8 +12,8 @@ namespace GameCorpLib.Transactions
 	{
 		public Trader _from;
 		public Trader _to;
-		private LockedResource<R<TResourceType>>? _lockedResource;
-		private Blocked<R<Capacity<TResourceType>>, R<TResourceType>>? _blockedCapacity;
+		private LockedResource<TResourceType>? _lockedResource;
+		private BlockedResourceCapacity<TResourceType>? _blockedCapacity;
 		public R<TResourceType> AmountToTransfer { get; private set; }
 		private bool _disposed = false;
 		public bool Disposed { get => _disposed; }
@@ -76,12 +77,13 @@ namespace GameCorpLib.Transactions
 				if (!CheckSetupIsOk()) return false;
 
 				var ansver = _lockedResource.TryGetPartial(resource); //This cannot be null
-				if (!ansver.Item1) return false; //Resource requested was to large
+				if (ansver is null) return false; //Resource requested was to large
 
-				_blockedCapacity.Use(ansver.Item2); //This cannot be null
+				R<TResourceType> resourcesFromLock = (R<TResourceType>)ansver;
+				_blockedCapacity.PartialUse(resourcesFromLock); //This cannot be null
 
 
-				AmountToTransfer -= ansver.Item2;
+				AmountToTransfer -= resourcesFromLock;
 				if (AmountToTransfer == 0.Create<TResourceType>()) CompleteTrade();
 				if (AmountToTransfer < 0.Create<TResourceType>()) throw new InvalidOperationException("Amount to transfer cannot be negative");
 

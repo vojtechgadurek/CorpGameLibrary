@@ -157,6 +157,7 @@ public class SpotMarketInResource<TResourceTradedType> : PrivilegedTrader where 
 				higgestPriceOffer.TryFill(amountSold);
 
 				player.Stock.ForceIncreaseResources<Money>((amountSold.Amount * higgestPriceOffer.PricePerUnit));
+				if (higgestPriceOffer.ResourceTraded == 0.Create<TResourceTradedType>()) BuyOffers.Remove(higgestPriceOffer);
 				toLiquidate -= amountSold;
 			}
 			player.Stock.ForceIncreaseResources<Money>(toLiquidate.Amount * _govermentBuyout);

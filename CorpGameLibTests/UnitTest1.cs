@@ -78,6 +78,17 @@ namespace CorpGameLibTests
 					Assert.Equal(0.Create<Capacity<Oil>>(), silo.BlockedCapacity);
 				}
 			}
+			[Fact]
+			public void TestSiloBlockUse()
+			{
+				double capacity = 10000;
+				double capacityToBlock = 1000;
+				var confg = new SiloConfiguration<Oil>().SetCapacity(capacity.Create<Oil>().ToCapacity());
+				Silo<Oil> silo = new Silo<Oil>(confg);
+				var blocked = silo.TryGetBlockOnCapacity(capacityToBlock.Create<Oil>().ToCapacity());
+				blocked.Use(1000.Create<Oil>());
+				Assert.Equal(silo.BlockedCapacity, 0.Create<Oil>().ToCapacity());
+			}
 
 			[Theory]
 			[InlineData(10000, 1000, true)]
@@ -279,6 +290,11 @@ namespace CorpGameLibTests
 				Assert.True(market.TryCreateNewTradeOffer(new R<Oil>(10), new R<Money>(10), Game.Rich.Trader, SpotMarketOfferType.Buy));
 
 				Assert.Equal(1, market.SellOffers.Count);
+				Assert.True(market.TryCreateNewTradeOffer(new R<Oil>(10), new R<Money>(10), Game.Rich.Trader, SpotMarketOfferType.Buy));
+
+				Assert.Equal(Game.Rich.Stock.GetBlockedCapacity<Oil>(), 0.Create<Oil>().ToCapacity());
+
+
 			}
 
 			[Fact]
@@ -289,6 +305,13 @@ namespace CorpGameLibTests
 				double amount = 1000;
 				market.OnMarketPriceLiqudation(amount.Create<Oil>(), Game.Poor);
 				Assert.Equal(-market.GovermentBuyout * amount, Game.GameControler.Game.Bank.GetCashLend(Game.Poor));
+			}
+			[Fact]
+			public void TestTrading()
+			{
+				var Game = new Utils.BasicGame();
+				var market = Game.GameControler.Game.SpotMarket.GetSpotMarket<Oil>();
+				Game.Poor.Stock.TryAddResource(new R<Oil>(1000));
 			}
 
 		}

@@ -32,8 +32,8 @@ namespace GameCorpLib.Stocks
 		private IUnderfillHandler<TResourceType> underfillHandler;
 
 		#region Blocking_and_locking
-		private LockedResource_ResourceManager<R<TResourceType>> lockedResourceManager;
-		private BlockedResourceManager<R<Capacity<TResourceType>>, R<TResourceType>> blockedResourceManager;
+		private LockedResource_ResourceManager<TResourceType> lockedResourceManager;
+		private BlockedResourceCapacity_ResourceManager<TResourceType> blockedResourceManager;
 		Action<R<TResourceType>> releaseLockedResources;
 		Action<R<Capacity<TResourceType>>> releaseBlockedCapacity;
 		Action<R<TResourceType>> takeResource;
@@ -60,10 +60,10 @@ namespace GameCorpLib.Stocks
 			//Setup locking and blocking
 			releaseLockedResources = (R<TResourceType> resourceToRelease) => { UnlockResource(resourceToRelease); };
 			takeResource = (R<TResourceType> resourceToTake) => { UseLockedResource(resourceToTake); };
-			lockedResourceManager = new LockedResource_ResourceManager<R<TResourceType>>(releaseLockedResources, takeResource);
+			lockedResourceManager = new LockedResource_ResourceManager<TResourceType>(releaseLockedResources, takeResource);
 			releaseBlockedCapacity = (R<Capacity<TResourceType>> resourceToRelease) => { UnblockCapacity(resourceToRelease); };
 			consumeBlockedCapacity = (R<TResourceType> resourceToUse) => { UseBlockedResourceCapacity(resourceToUse); };
-			blockedResourceManager = new BlockedResourceManager<R<Capacity<TResourceType>>, R<TResourceType>>(releaseBlockedCapacity, consumeBlockedCapacity);
+			blockedResourceManager = new BlockedResourceCapacity_ResourceManager<TResourceType>(releaseBlockedCapacity, consumeBlockedCapacity);
 
 			this.spillHandler = siloConfiguration.SpillHandler ?? new BasicSpillHandler<TResourceType>();
 			this.underfillHandler = siloConfiguration.UnderfillHandler ?? new BasicSpillHandler<TResourceType>();
@@ -149,7 +149,6 @@ namespace GameCorpLib.Stocks
 			{
 				throw new InvalidOperationException("You can not unblock capacity that was not blocked");
 			}
-			_limitedDouble.TryIncreaseUpperLimit(resource.Amount);
 		}
 		/// <summary>
 		/// Locks resource, so it can not be used in normal interactions, amount can not be negative.
@@ -229,13 +228,13 @@ namespace GameCorpLib.Stocks
 			}
 		}
 
-		public LockedResource<R<TResourceType>>? TryGetLockOnResource(R<TResourceType> resource)
+		public LockedResource<TResourceType>? TryGetLockOnResource(R<TResourceType> resource)
 		{
 			if (!TryLockResource(resource)) return null;
 			return lockedResourceManager.CreateLockedResource(resource);
 		}
 
-		public Blocked<R<Capacity<TResourceType>>, R<TResourceType>>? TryGetBlockOnCapacity(R<Capacity<TResourceType>> capacity)
+		public BlockedResourceCapacity<TResourceType>? TryGetBlockOnCapacity(R<Capacity<TResourceType>> capacity)
 		{
 			if (!TryBlockCapacity(capacity)) return null;
 			return blockedResourceManager.CreateBlocked(capacity);

@@ -101,12 +101,12 @@ namespace GameCorpLib.Stocks
 			return GetSilo<TResourceType>().TrySetCapacity(resource);
 		}
 
-		public LockedResource<R<TResourceType>>? TryGetLockOnResource<TResourceType>(R<TResourceType> amount) where TResourceType : IResource
+		public LockedResource<TResourceType>? TryGetLockOnResource<TResourceType>(R<TResourceType> amount) where TResourceType : IResource
 		{
 			return GetSilo<TResourceType>().TryGetLockOnResource(amount);
 		}
 
-		public Blocked<R<Capacity<TResourceType>>, R<TResourceType>>? TryGetBlockOnResourceCapacity<TResourceType>(R<Capacity<TResourceType>> amount) where TResourceType : IResource
+		public BlockedResourceCapacity<TResourceType>? TryGetBlockOnResourceCapacity<TResourceType>(R<Capacity<TResourceType>> amount) where TResourceType : IResource
 		{
 			return GetSilo<TResourceType>().TryGetBlockOnCapacity(amount);
 		}

@@ -10,18 +10,18 @@ using System.Threading.Tasks;
 namespace GameCorpLib.Transactions
 {
 
-
 	public class Holded<TResourceType>
 	{
-		protected HoldedResourceManager<TResourceType> _resourceOwner;
+		protected Action<TResourceType> ReleaseDelegate;
 
 		protected private TResourceType _resourceHeld;
 		public TResourceType Amount => _resourceHeld;
 		protected bool _disposed = false;
 		public bool Disposed => _disposed;
-		public Holded(TResourceType amount)
+		public Holded(TResourceType amount, Action<TResourceType> releaseDelegate)
 		{
 			_resourceHeld = amount;
+			ReleaseDelegate = releaseDelegate;
 		}
 
 		public void Release()
@@ -29,7 +29,7 @@ namespace GameCorpLib.Transactions
 			lock (this)
 			{
 				if (_disposed) return;
-				_resourceOwner.Release(this, _resourceHeld);
+				ReleaseDelegate.Invoke(_resourceHeld);
 				_disposed = true;
 			}
 		}
@@ -38,9 +38,10 @@ namespace GameCorpLib.Transactions
 	public class Blocked<TBlocked, TBlockedFor> : Holded<TBlocked>
 	{
 		public TBlocked Amount => _resourceHeld;
-		public Blocked(TBlocked amount, BlockedResourceManager<TBlocked, TBlockedFor> resourceowner) : base(amount)
+		protected Action<TBlockedFor> UseDelegate;
+		public Blocked(TBlocked amount, Action<TBlockedFor> useDelegate, Action<TBlocked> releaseDelegate) : base(amount, releaseDelegate)
 		{
-			_resourceOwner = resourceowner;
+			UseDelegate = useDelegate;
 		}
 
 		public void Use(TBlockedFor blockageToUse)
@@ -48,16 +49,37 @@ namespace GameCorpLib.Transactions
 			lock (this)
 			{
 				if (_disposed) throw new InvalidOperationException("Blocked resource was already disposed of");
-				((BlockedResourceManager<TBlocked, TBlockedFor>)_resourceOwner).Use(this, blockageToUse);
+				UseDelegate.Invoke(blockageToUse);
+				_disposed = true;
+			}
+		}
+	}
+
+	public class BlockedResourceCapacity<TResourceType> : Blocked<R<Capacity<TResourceType>>, R<TResourceType>> where TResourceType : IResource
+	{
+
+		public BlockedResourceCapacity(R<Capacity<TResourceType>> amount, Action<R<TResourceType>> useDelegate, Action<R<Capacity<TResourceType>>> releaseDelegate) : base(amount, useDelegate, releaseDelegate)
+		{
+		}
+		public bool PartialUse(R<TResourceType> blockageToUse)
+		{
+			lock (this)
+			{
+				if (_disposed) return false;
+				if (_resourceHeld < blockageToUse.ToCapacity()) return false;
+				UseDelegate.Invoke(blockageToUse);
+				_resourceHeld -= blockageToUse.ToCapacity();
+				if (_resourceHeld.IsZero()) _disposed = true;
+				return true;
 			}
 		}
 	}
 	public class Locked<TResourceType> : Holded<TResourceType>
 	{
-
-		public Locked(TResourceType amount, LockedResourceManager<TResourceType> resourceOwner) : base(amount)
+		protected Action<TResourceType> TakeDelegate;
+		public Locked(TResourceType amount, Action<TResourceType> takeDelegate, Action<TResourceType> releaseDelegate) : base(amount, releaseDelegate)
 		{
-			_resourceOwner = resourceOwner;
+			TakeDelegate = takeDelegate;
 		}
 		public TResourceType Get()
 		{
@@ -65,41 +87,38 @@ namespace GameCorpLib.Transactions
 			{
 				if (_disposed) throw new InvalidOperationException("Locked reource was already disposed of");
 				_disposed = true;
-				((LockedResourceManager<TResourceType>)_resourceOwner).Take(this);
+				TakeDelegate.Invoke(_resourceHeld);
 				return _resourceHeld;
 			}
 		}
 	}
 
-	public class LockedResource<TResource> : Locked<TResource> where TResource : IOrderedVector<TResource>
+	public class LockedResource<TResource> : Locked<R<TResource>> where TResource : IResource
 	{
-		public LockedResource(TResource amount, LockedResourceManager<TResource> resourceOwner) : base(amount, resourceOwner)
+		public LockedResource(R<TResource> amount, Action<R<TResource>> takeDelegate, Action<R<TResource>> releaseDelegate) : base(amount, takeDelegate, releaseDelegate)
 		{
 		}
 
 
 
-		public (bool, TResource?) TryGetPartial(TResource amountToGet)
+		public R<TResource>? TryGetPartial(R<TResource> amountToGet)
 		{
 			lock (this)
 			{
-				if (amountToGet.CompareTo(_resourceHeld) == 1) return (false, default(TResource));
-
-
-				((LockedResource_ResourceManager<TResource>)_resourceOwner).PartialTake(this, amountToGet);
+				if (amountToGet > _resourceHeld) return null;
 				//
-				_resourceHeld = (TResource)_resourceHeld.Subtract(amountToGet);
-
+				_resourceHeld -= amountToGet;
+				TakeDelegate.Invoke(amountToGet);
 
 				//Dispose if is empty
 				if (_resourceHeld.IsZero()) Release();
 
-				return (true, amountToGet);
+				return amountToGet;
 
 			}
 		}
 
-		public TResource GetPartial(double proportion)
+		public R<TResource> GetPartial(double proportion)
 		{
 			if (proportion is < 0 or > 1) throw new ArgumentOutOfRangeException("Proportion must be between 0 and 1");
 
@@ -107,7 +126,7 @@ namespace GameCorpLib.Transactions
 			{
 				if (_disposed) throw new InvalidOperationException("Locked resource was already disposed of");
 				//Null should not be returned
-				return TryGetPartial((TResource)_resourceHeld.ScalarMultiply(proportion)).Item2 ?? throw new InvalidOperationException("Null was returned and this is not expected behavior according to contract of the function TryGetPartial(TResource amountToGet)");
+				return TryGetPartial(_resourceHeld * proportion) ?? throw new InvalidOperationException("Null was returned from TryGetPartial()");
 			}
 
 		}
