@@ -21,8 +21,8 @@ namespace GameCorpLib.Persons
 			}
 		}
 	}
-	public class ContractMaker
+	public class ContractMaker : PrivilegedTrader, ITrader
 	{
-
+		
 	}
 }

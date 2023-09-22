@@ -7,7 +7,7 @@ namespace GameCorpLib.Tradables
 	{
 		private readonly int _id;
 		public int Id { get => _id; }
-		public Trader Owner;
+		public ITrader Owner;
 		bool _lockedForTrade = false;
 		private PropertyRegister _propertyRegister;
 		public Property(Trader owner, PropertyRegister propertyRegister)
@@ -18,7 +18,7 @@ namespace GameCorpLib.Tradables
 			_propertyRegister = propertyRegister;
 		}
 
-		public void ChangeOwner(Trader newOwner)
+		public void ChangeOwner(ITrader newOwner)
 		{
 
 			Owner.Properties.Remove(this);

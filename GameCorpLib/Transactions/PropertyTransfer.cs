@@ -8,8 +8,8 @@ namespace GameCorpLib.Transactions
 {
 	public record class PropertyTransfer : ITransactionItem
 	{
-		private Trader _from;
-		private Trader _to;
+		private ITrader _from;
+		private ITrader _to;
 		private Property _itemTraded;
 		public string Error { get; private set; }
 		private bool _transferSetupFailed = false;
@@ -18,7 +18,7 @@ namespace GameCorpLib.Transactions
 		private bool _propertyLocked = false;
 		public bool TransferSetupFailed { get { return _transferSetupFailed; } }
 
-		public PropertyTransfer(Trader from, Trader to, Property itemTraded)
+		public PropertyTransfer(ITrader from, ITrader to, Property itemTraded)
 		{
 			_from = from;
 			_to = to;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GameCorpLib.Persons;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -56,9 +57,9 @@ namespace GameCorpLib.Stocks
 	public class ResourceSpillHandler<TResourceType> : ISpillHandler<TResourceType>, IUnderfillHandler<TResourceType> where TResourceType : IResource
 	{
 		SpotMarketInResource<TResourceType> _spotMarket;
-		Player _player;
+		ITrader _player;
 
-		public ResourceSpillHandler(Player player, SpotMarketInResource<TResourceType> spotMarket)
+		public ResourceSpillHandler(ITrader player, SpotMarketInResource<TResourceType> spotMarket)
 		{
 			_spotMarket = spotMarket;
 			_player = player;

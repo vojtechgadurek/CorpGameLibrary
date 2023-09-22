@@ -9,6 +9,7 @@ namespace GameCorpLib
 		readonly int Id;
 		Player Controler;
 		Trader trader;
+		public Properties Properties => trader.Properties;
 		public Stock Stock { get => trader.Stock; }
 		public Company(string name, Player controler, CompanyRegister companyRegister)
 		{

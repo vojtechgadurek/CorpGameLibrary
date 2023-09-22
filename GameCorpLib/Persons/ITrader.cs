@@ -9,5 +9,6 @@ namespace GameCorpLib.Persons
 	public interface ITrader
 	{
 		public Stock Stock { get; }
+		public Properties Properties { get; }
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GameCorpLib.Persons;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,12 +12,12 @@ namespace GameCorpLib
 		private double _interestPerRound = 10;
 		public double InterestPerRound { get => _interestPerRound; }
 
-		Dictionary<Player, R<Money>> _loans = new Dictionary<Player, R<Money>>();
+		Dictionary<ITrader, R<Money>> _loans = new Dictionary<ITrader, R<Money>>();
 		public Bank(double interestPerRound)
 		{
 			_interestPerRound = interestPerRound;
 		}
-		public void TakeLoan(Player player, R<Money> cashToBorrow)
+		public void TakeLoan(ITrader player, R<Money> cashToBorrow)
 		{
 			if (_loans.ContainsKey(player))
 			{
@@ -30,7 +31,7 @@ namespace GameCorpLib
 		}
 
 
-		public R<Money> GetCashLend(Player player)
+		public R<Money> GetCashLend(ITrader player)
 		{
 			if (!_loans.ContainsKey(player)) _loans.Add(player, new R<Money>(0));
 			return _loans[player];

@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using GameCorpLib;
+using GameCorpLib.Persons;
 using GameCorpLib.Transactions;
 
 namespace GameCorpLib.Markets
@@ -145,7 +146,7 @@ public class SpotMarketInResource<TResourceTradedType> : PrivilegedTrader where 
 		}
 	}
 
-	public void OnMarketPriceLiqudation(R<TResourceTradedType> toLiquidate, Player player)
+	public void OnMarketPriceLiqudation(R<TResourceTradedType> toLiquidate, ITrader player)
 	{
 		lock (this)
 		{

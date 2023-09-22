@@ -10,7 +10,7 @@ namespace GameCorpLib
 	{
 
 		public Stock Stock { get; private set; }
-		public Properties Properties = new Properties();
+		public Properties Properties { get; private set; } = new Properties();
 
 		public Trader(Stock stock)
 		{

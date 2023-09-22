@@ -10,8 +10,8 @@ namespace GameCorpLib.Transactions
 
 	public class ResourceTransfer<TResourceType> : ITransactionItem where TResourceType : IResource
 	{
-		public Trader _from;
-		public Trader _to;
+		public ITrader _from;
+		public ITrader _to;
 		private LockedResource<TResourceType>? _lockedResource;
 		private BlockedResourceCapacity<TResourceType>? _blockedCapacity;
 		public R<TResourceType> AmountToTransfer { get; private set; }
@@ -19,7 +19,7 @@ namespace GameCorpLib.Transactions
 		public bool Disposed { get => _disposed; }
 
 		public bool TransferCompleted { get; private set; } = false;
-		public ResourceTransfer(Trader from, Trader to, R<TResourceType> resource)
+		public ResourceTransfer(ITrader from, ITrader to, R<TResourceType> resource)
 		{
 			_from = from;
 			_to = to;
