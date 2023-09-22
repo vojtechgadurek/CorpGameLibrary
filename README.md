@@ -173,6 +173,30 @@ BlockedResource<Money> lockedMoney =  (LockedResource<Money>) silo2.TryGetLockOn
 blockedCapacityForMoney.Use(lockedMoney.Get()); //Uses the free space filling by locked resources
 ```
 
+### Resources storing - Silos and Stocks
+
+#### Silo\<TResource\>
+
+Silo provides capacity to store resource of its type.
+It enforce resource is always between upperlimit and lowerlimit.
+It allows locking resources and also blocking capacity for later use.
+Sometimes one it is needed to increase or decrease resources regardless of resources held. 
+Then silo handles overflow and underflow by ISpillHandler and IUnderfillHandler, which must be provided at creation of the silo.
+
+##### LimitedDouble
+LimitedDouble is a double, that is always between upperlimit and lowerlimit. It is possible to increase its value or value of this upper and lower limit, but it will allway upphold the rule.
+
+#### Stock\<TResource\>
+Stock creates silo for any Resource type and allows to access it via generic methods (that copy Silo public contract). 
+
+#### ISpillHandler and IUnderfillHandler
+ISpillHandler and IUnderfillHandler are interfaces. Classes that implment them are used to handle overflow and underflow of resources.
+
+##### BankMoneySpillHandler
+Handles cash underfill by borrowing money from bank. It is used by CashSilo.
+
+##### ResourceSpillHandler
+Handles resource overflow by selling it at spotmareket.
 
 ## Classes
 ### Game
