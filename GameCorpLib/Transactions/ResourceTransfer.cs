@@ -69,6 +69,18 @@ namespace GameCorpLib.Transactions
 				TryExecutePartialTransfer(AmountToTransfer * proportion);
 			}
 		}
+		public bool TryExecutePartialTransfer(double proportion)
+		{
+			if (proportion < 0 || proportion > 1) throw new InvalidOperationException("Proportion must be between 0 and 1");
+
+
+			lock (this)
+			{
+				return TryExecutePartialTransfer(AmountToTransfer * proportion);
+			}
+		}
+
+
 		public bool TryExecutePartialTransfer(R<TResourceType> resource)
 		{
 			lock (this)
@@ -97,6 +109,14 @@ namespace GameCorpLib.Transactions
 			lock (this)
 			{
 				ExecutePartialTransfer(1);
+			}
+		}
+
+		public bool TryExecuteTransfer()
+		{
+			lock (this)
+			{
+				return TryExecutePartialTransfer(1);
 			}
 		}
 	}

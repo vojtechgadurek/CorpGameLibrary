@@ -16,7 +16,7 @@ There are two main kinds of resource types which are Cash and HardResource. They
 ICash is used for representing money and IHardResource is used for representing resources like oil, gold, etc 
 (resources that actually requires real space for storing them). There are two predefined types of resources, Money and Oil. Money is ICash and Oil is IHardResource.
 
-#### R<TResource>
+#### R\<TResource\>
 R\<TResource\> is a struct, that where TResource (TResource must implement IResource) is the resource type it represents. R\<TResource\> behaves like a double and it is internaly implemented
 by double by it. It value is possible to get by using Amount property. 
 Nearly all operators are overloaded and works as one would expect from double. 
@@ -65,6 +65,7 @@ public struct Coal : IHardResource
 Transaction system gurantees, that transaction will be completed only if all resources and properties are availible 
 for the transaction and there is space for these resources and properties
 otherwise it will be safely aborted releasing all locked resources and properties. 
+Transaction are threadsafe.
 #### Transactions types
 
 ##### Transfers 
@@ -75,14 +76,42 @@ They allow to transfer resources and properties between two  ITrader entities.
 They gurantee, that there is resource availible for the transfer and space for storing it. 
 Thy will also lock the resource/property and the capacity for the lifethime of the transaction.
 If the transaction is aborted, via Dispose() the resource/property and capacity will be released.
-The locked resource/blocked capacity cannot be used by others. 
+The locked resource/blocked capacity cannot be used by others.
+
+An example:
+
 
 Transfer are not executed immediately, but by calling ExecuteTransfer().
+
+```cs
+
+var transfer = new ResourceTransfer(100.Create<Money>(), buyer, seller); //Creates transfer of 100 money from buyer to seller
+//If buyer did not ha 100 money, or seller did not had space for 100 money, transaction would be aborted
+transfer.TryExecuteTransfer(); //If transaction was not aborted, it will be executed and than always returns true, otherwise false
+
+
+var transfer = new PropertyTransfer((Property) property, buyer, seller); //Transfers property from player one to player two
+//If player one did not had the property, or player two did not had space for the property, transaction would be aborted
+transfer.ExecuteTransfer(); //If transaction was not aborted, it will be executed and than always returns true, otherwise it will throw an InvalidOperationException
+```
+
 
 
 Resource transfer allows also a partial transfer, where only some percentage of the transfer is executed and 
 the rest is held locked/blocked for futher usage. It may be usefull for example for implementing trade offers,
-where one does not require to sell all resources at once.
+where one does not require to sell all resources at once. If resource held by transfer is equal to 0, trade wil be auto autocompleted.
+
+```cs
+
+var transfer = new ResourceTransfer(100.Create<Money>(), buyer, seller); //Creates transfer of 100 money from buyer to seller
+//If buyer did not ha 100 money, or seller did not had space for 100 money, transaction would be aborted
+//For the example we will assume transfer was not aborted
+transfer.TryExecutePartialTransfer(0.5); //50 will be left to transfer
+transfer.TryExecutePartialTransfer(0.5); //25 will be left to transfer
+transfer.TryExecutePartialTransfer(25.Create<Money>()); //0 left to transfer, transaction will be completed
+```
+
+
 
 ##### TwoPartyTransaction
 TwoPartyTransaction allows to merge multiple transfers in to one transaction.
@@ -114,6 +143,36 @@ transaction.TryExecuteProportional(0.5); //Just 25 money and oil will be left
 transaction.TryExecuteProportional(25.Create<Oil>()); //Transfer will be marked completed;
 transaction.TryExecuteProportional(25.Create<Oil>()); //False will be returned, because transaction is already completed
 ```
+
+#### Transaction system implemenatation details
+
+When transfer is created, it will tries to lock the resource/property and capacity for the transaction.
+If it fails, it will release all resources it managed to get held of, will set itself as disposed. 
+Locking of resource (property soon to be) is done by Holded\<TResource\> and its decendants.
+
+##### Blocking/Locking/Holding
+
+###### Holded\<TResource>\
+It allows a ability to hold a resource for transaction. A release delagate must be provided, when Release() is called, it is expected to safely release the resource.
+###### Blocked\<TResourceHeld, TResourceBlockedFor\>
+It allows to hold some resource for later and used with TResourceBlockedFor later. A use deleagte must be provided, when Use(resourceBlocked) is called, it is expected to safely use the resource.
+###### Locked\<TResource>
+It allows to lock some resource for later. A take deleagte must be provided, when get() is called, it is expected to safely get the resource from some source.
+###### BlockedResource and LockedResource
+They are derivation of Blocked and Locked for R\<\> types as such they allow partial take and partial use. 
+
+
+
+```cs
+Silo<Money> silo1 = StockFactory>CreateNoLimitsSilo<Money>(); //Creates a silo with no limits
+Silo<Money> silo2 = StockFactory>CreateNoLimitsSilo<Money>(); //Creates a silo with no limits
+
+BlockedResource<Money> blockedCapacityForMoney =  (BlockedResource<Money>) silo1.TryGetBlockOnCapacity(100.Create<Money>().ToCapacity()); //Tries to get 100 money from silo
+BlockedResource<Money> lockedMoney =  (LockedResource<Money>) silo2.TryGetLockOnResource(100.Create<Money>()); //Tries to get 100 money from silo
+
+blockedCapacityForMoney.Use(lockedMoney.Get()); //Uses the free space filling by locked resources
+```
+
 
 ## Classes
 ### Game
