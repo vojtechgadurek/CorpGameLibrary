@@ -182,6 +182,25 @@ It enforce resource is always between upperlimit and lowerlimit.
 It allows locking resources and also blocking capacity for later use.
 Sometimes one it is needed to increase or decrease resources regardless of resources held. 
 Then silo handles overflow and underflow by ISpillHandler and IUnderfillHandler, which must be provided at creation of the silo.
+```cs
+Silo<Money> silo1 = StockFactory>CreateNoLimitsSilo<Money>(); //Creates a silo with no limits with no reosurce in it
+Silo<Money> silo2 = StockFactory>CreateNoLimitsSilo<Money>(); //Creates a silo with no limits with no reosurce in it
+
+BlockedResource<Money> blockedCapacityForMoney =  (BlockedResource<Money>) silo1.TryGetBlockOnCapacity(100.Create<Money>().ToCapacity()); //Tries to get 100 money from silo
+BlockedResource<Money> lockedMoney =  (LockedResource<Money>) silo2.TryGetLockOnResource(100.Create<Money>()); //Tries to get 100 money from silo
+
+silo1.ForceIncreaseResource(100.Create<Money>()); //Increases resource by 100 money, it does not matter if there is space for it or not
+silo1.GetResource(); //Returns 100 money
+
+
+```
+
+
+##### SiloFactory
+SiloFactory is a factory class for creating silos. It provides methods for creating silos with different limits and spill/underfill handlers.
+
+##### SiloConfifuration
+Allows to configure silo. It is used by SiloFactory to create silos. 
 
 ##### LimitedDouble
 LimitedDouble is a double, that is always between upperlimit and lowerlimit. It is possible to increase its value or value of this upper and lower limit, but it will allway upphold the rule.
@@ -189,63 +208,57 @@ LimitedDouble is a double, that is always between upperlimit and lowerlimit. It 
 #### Stock\<TResource\>
 Stock creates silo for any Resource type and allows to access it via generic methods (that copy Silo public contract). 
 
+```cs
+Stock stock = StockFactory.CreatePriviligedTraderStock();
+
+BlockedResource<Money> blockedCapacityForMoney =  (BlockedResource<Money>) stock.TryGetBlockOnCapacity(100.Create<Money>().ToCapacity()); //Tries to get 100 money from silo
+BlockedResource<Money> lockedMoney =  (LockedResource<Money>) stock.TryGetLockOnResource(100.Create<Money>()); //Tries to get 100 money from silo
+
+stock.ForceIncreaseResource(100.Create<Money>()); //Increases resource by 100 money, it does not matter if there is space for it or not
+stock.GetResource<Money>(); //Returns 100 money
+
+```
+
 #### ISpillHandler and IUnderfillHandler
 ISpillHandler and IUnderfillHandler are interfaces. Classes that implment them are used to handle overflow and underflow of resources.
 
+##### SimpleSpillHandler
+Dummy spill handler, that does nothing.
+
 ##### BankMoneySpillHandler
-Handles cash underfill by borrowing money from bank. It is used by CashSilo.
+Handles cash underfill by borrowing money from a bank. It is used by CashSilo.
 
 ##### ResourceSpillHandler
-Handles resource overflow by selling it at spotmareket.
+Handles resource overflow by selling it at spotmarket.
 
-## Classes
-### Game
-Game is the main class, that holds all important componets for the game together, also it initializes each gaming session.
-### ITrader
-ITrader is very important contract. It 
-### Player
-Player holds infromation about a player important for his indetification, like password and username and also data used by the game l
-### Trader
-- it represtents a entity able to hold resources and properties
-### PriviligedTrader
-- has MagicalStock used for entities mocking Trader contract.
-### Transactions
-- They allow an exchange of properties and resources between players with these rules
-    - they are always done in full, so all properties and resources must be availible for a transaction
-    - these transfer cannot overflow or underflow storages
-- They usually lock underling asset, so there is guarantee, it will be availible for the duration of the transaction
-#### ResourceTransfer/PropetyTransfer
-- simplest, used for oneway transfer of resources
-#### TwoPartyTransaction
-- allows to merge mutiple Transfers in to one transaction
-#### ProportionalTransaction
-- allows only resource transfers and it allows, that just some percentage of the transaction would be completed
-### Stock
-- colection of Silos for each resource
-- used for storing resource
-- allows blocking capacity
-- locking resources
-- addind/removing resource/capacity
-- force adding resource -> may lead to spill or underfill -> allows solution dor that
-#### MagicalStock
-- always returns true
-####  CashSilo
-- infinite capacity
-#### ResourceSilo 
-- finite capacity
-#### LimitedDouble
-- has two limits and values, value must always be between limits
-### Resource
-- struct for representing resource
-#### ResourceType
 
-### Property
-- represents entity with possibility to be owned
-### Registers
-- allow entities with id to be held in one place
-### SpotMarket
-- posible to add trades, if two have matching price, trade will be made
-- forcesell - if one overspill its silo
+### Register
+Register is a class for storing game objects, it gives them unique id and allows to access them by id. It expect every object it stores to provide a place to store id as reference.
+It provides possiblity to do action afeter registering a item.
+#### PropertyRegister
+Puts all properties in one place.
+#### PlayerRegister
+Manages players and their identification. 
 
-### OilField
-- creates a oilfield, where additonal minig rig may be placed
+### Properties
+Properties represent a tradable entity thats in nature undividable or its limited in number and perform some action at the end of each round.
+#### OilField
+OilField is a property that produces oil each round. It does not care, if there is capacity to store it. 
+
+### GameEntities
+Game entities that need to interact via transactions system with other entities may be derived from PrivilegedTrader which implements ITrader, but its transaction allways succeed.
+#### OilFieldProspector
+Allow entities with ITrader interface to buy a oil field.
+#### SpotMarket
+Allows to sell resources at spot market. One need to provide price for resource traded, resource amount willing to trade, and direction of trade.
+If there is any counterparty willing to trade at the price( or lower if buy offer, or higher if sell offer, the trade will be executed.
+Trade will be executed at the price each party set a difference being profit for spotmarket.
+Spotmarket allows market order which will try to sell trade at any price and minimum price must be provided. - This is used by ResourceSpillHandler.
+
+### Player 
+Player is a class that represents a player in the game. It is used by PlayerRegister to store players and give them unique id.
+
+### Game 
+Game is a class that represents a game. It is used to store all components/constants together.
+
+
