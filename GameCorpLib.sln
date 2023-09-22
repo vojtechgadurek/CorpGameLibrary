@@ -5,7 +5,12 @@ VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameCorpLib", "GameCorpLib\GameCorpLib.csproj", "{251C0050-DB1A-4E92-9A94-BA24CF6AA328}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CorpGameLibTests", "CorpGameLibTests\CorpGameLibTests.csproj", "{2662596A-F401-419F-8199-ED99562CD105}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CorpGameLibTests", "CorpGameLibTests\CorpGameLibTests.csproj", "{2662596A-F401-419F-8199-ED99562CD105}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{09652799-B102-4C5F-90B6-D37EBBA307C0}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
