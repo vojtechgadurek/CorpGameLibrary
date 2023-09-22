@@ -6,7 +6,19 @@ It offers these features
   - safe transactions, that always uphold game rules
   - storages with limited capacity with customisible handling of overflows
   - spotmarket - which matches demand and supply
+## Overview
+This library offers easy way for implementing some sort of simple trading game. The most important part of it is the transaction/trading system.
+Every entity implementing ITrader interface is to interact with other entities via the transaction system. 
+### Transaction System
+Transaction system gurantees
+
 ## Classes
+### Game
+Game is the main class, that holds all important componets for the game together, also it initializes each gaming session.
+### ITrader
+ITrader is very important contract. It 
+### Player
+Player holds infromation about a player important for his indetification, like password and username and also data used by the game l
 ### Trader
 - it represtents a entity able to hold resources and properties
 ### PriviligedTrader
