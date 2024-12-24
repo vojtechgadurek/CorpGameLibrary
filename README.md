@@ -7,18 +7,17 @@ It offers these features
   - storages with limited capacity with customisable handling of overflows
   - spotmarket - which matches demand and supply
 ## Overview
-This library offers easy way for implementing some sort of simple trading game. The most important part of it is the transaction/trading system.
-Every entity implementing ITrader interface is to interact with other entities via the transaction system, but for the sake of simplicity I would start with the resource type system.
+This library offers an easy way for implementing some simple trading game. The most important part of it is the transaction/trading system.
+Every entity implementing the ITrader interface can interact with other entities via the transaction system, but for simplicity, I would start with the resource type system.
 
 ### Resource type system
-The library enforces code safety by using static type system for resources.
+The library enforces code safety by using a static type system for resources.
 There are two main kinds of resource types which are Cash and HardResource. They are abstracted by ICash and IHardResource interfaces, and both of them implemets IResource.
 ICash is used for representing money and IHardResource is used for representing resources like oil, gold, etc 
-(resources that actually requires real space for storing them). There are two predefined types of resources, Money and Oil. Money is ICash and Oil is IHardResource.
+(resources that require real space for storing them). There are two predefined types of resources, Money and Oil. Money is ICash and Oil is IHardResource.
 
 #### R\<TResource\>
-R\<TResource\> is a struct, that where TResource (TResource must implement IResource) is the resource type it represents. R\<TResource\> behaves like a double and it is internaly implemented
-by double by it. It value is possible to get by using Amount property. 
+R\<TResource\> is a struct, that where TResource (TResource must implement IResource) is the resource type it represents. R\<TResource\> behaves like a double and it is internally implemented as a double. Its value is possible to get by using the Amount property. 
 Nearly all operators are overloaded and works as one would expect from double. 
 
 ```cs
@@ -26,16 +25,16 @@ R<Money> money = 100.Create<Money>(); //Creates 100 money
 R<Oil> oil = 100.Create<Oil>(); //Creates 100 oil
 
 //money = money + oil; //This would not compile, because money and oil are different types of resources
-money = money + 100.Create<Money>(); //This would compile, because both operands are of type Money
-money = money * 100 //This would compile, because multiplying by scalar is allowed
+money = money + 100.Create<Money>(); //This would compile because both operands are of type Money
+money = money * 100 //This would compile because multiplying by scalar is allowed
 money = money * money; //This would not compile, because multiplying two money values is not allowed
 
-//one can also create resource by using new 
+//one can also create resources by using new 
 R<Money> money = new R<Money>(100); //Creates 100 money
 ```
 
 ##### Capacity
-There is also a concept of capacity, which is used for representing space for storing resources. It is used to not messup together resources and capacity.
+There is also a concept of capacity, which is used to represent space for storing resources. It is used to not mess up together resources and capacity.
  ```cs
 R<Oil> oil = 100.Create<Oil>(); //Creates 100 oil
 R<Capacity<oil> capacity1 = 100.Create<Capacity<Oil>>(); //Creates capacity for 100 oil
@@ -47,9 +46,9 @@ capacity1.WillFit(oil * 2); //False
 
 #### Custom resource types
 
-Reflection is used for getting information about resource types. These is done by Resources class, which finds all classes/struct with ResourceDirective declaring them as resource type.
+Reflection is used for getting information about resource types. This is done by Resources class, which finds all classes/struct with ResourceDirective declaring them as resource type.
 
-As just two types are hardcoded, one may need create addtional resource types. One just need to create empty struct/class and directive ResourceDirective.
+As just two types are hardcoded, one may need to create additional resource types. One just needs to create an empty struct/class and directive ResourceDirective.
 ```cs
 //Write directive providing important information about the new resource type
 [Resource("Coal" /* Name of the resource */, TypeOfResourceType.HardResource /* kind of the resource*/, typeof(Coal) /* Reference to the class/struct implementing it */)] 
